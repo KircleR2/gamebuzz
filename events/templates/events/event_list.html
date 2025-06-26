@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+{% if hero_events %}
+<!-- Dynamic Hero Section with Events -->
+<section class="hero hero-dynamic">
+    <div class="hero-slider">
+        {% for event in hero_events %}
+        <div class="hero-slide {% if forloop.first %}active{% endif %}" 
+             style="background-image: url('{% if event.hero_image %}{{ event.hero_image.url }}{% elif event.featured_image %}{{ event.featured_image.url }}{% else %}https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop{% endif %}')"
+             data-event-slug="{{ event.slug }}">
+            <div class="hero-overlay"></div>
+            <div class="hero-content"></div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Hero Slider Navigation -->
+    {% if hero_events|length > 1 %}
+    <div class="hero-slider-nav">
+        {% for event in hero_events %}
+        <button class="hero-slider-dot {% if forloop.first %}active{% endif %}" data-slide="{{ forloop.counter0 }}"></button>
+        {% endfor %}
+    </div>
+    {% endif %}
+</section>
+{% else %}
+<!-- Static Hero Section (fallback) -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Discover Amazing Gaming Events</h1>
+        <p class="hero-subtitle">Find the best gaming tournaments, conventions, and meetups in your area. Connect with fellow gamers and experience unforgettable moments.</p>
+        
+        <form class="hero-search">
+            <i class="bi bi-search hero-search-icon"></i>
+            <input type="text" class="hero-search-input" placeholder="Search for events, games, or locations...">
+            <button type="submit" class="hero-search-button">Search</button>
+        </form>
+    </div>
+</section>
+{% endif %}
+
+<!-- Categories Section -->
+<section id="categories" class="section categories">
+        <div class="container">
+        <h2 class="section-title">Browse by Category</h2>
+        <p class="section-subtitle">Find events that match your gaming interests and preferences</p>
+        
+        <div class="categories-grid">
+            {% for category in categories %}
+            <div class="category-card">
+                <a href="{% url 'category_events' category.slug %}">
+                    <div class="category-icon">
+                        <i class="bi {{ category.icon|default:'bi-controller' }}"></i>
+                    </div>
+                    <h3 class="category-title">{{ category.name }}</h3>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        </div>
+    </section>
+
+<!-- Featured Events Section -->
+<section id="events" class="section">
+    <div class="container">
+        <div class="section-header flex items-center justify-between mb-8">
+            <div>
+                <h2 class="section-title section-title-split">
+                    <span class="section-title-main">Featured</span> <span class="section-title-accent">Events</span>
+                </h2>
+                <p class="section-subtitle section-subtitle-gray">Don't miss these epic gaming experiences</p>
+                </div>
+            <a href="{% url 'featured_events' %}" class="btn btn-outline btn-outline-accent">View All Events</a>
+                </div>
+        <div class="events-grid">
+            {% for event in featured_events %}
+            <div class="event-card animate-on-scroll" data-category="{{ event.category.slug|default:'all' }}">
+                <div class="event-image">
+                    {% if event.featured_image %}
+                    <img src="{{ event.featured_image.url }}" alt="{{ event.title }}" loading="lazy">
+                    {% else %}
+                    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop" alt="{{ event.title }}" loading="lazy">
+                    {% endif %}
+                    {% if event.category %}
+                    <span class="event-badge">{{ event.category.name }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="event-content">
+                    <h3 class="event-title">{{ event.title }}</h3>
+                    
+                    <div class="event-details">
+                        <div class="event-detail">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>{{ event.start_date|date:"M d, Y" }}</span>
+                </div>
+                        <div class="event-detail">
+                            <i class="bi bi-clock"></i>
+                            <span>{{ event.start_time|time:"g:i A" }}</span>
+            </div>
+                        <div class="event-detail">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>{{ event.city }}, {{ event.state_province }}</span>
+        </div>
+    </div>
+    
+                    <div class="flex items-center justify-between">
+                        <span class="event-price">
+                            {% if event.is_free %}
+                            Free
+                            {% else %}
+                            {{ event.price_display|default:'$' }}
+                            {% endif %}
+                        </span>
+                        <a href="{% url 'event_detail' event.slug %}" class="event-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+                </div>
+                {% endfor %}
+        </div>
+            </div>
+        </section>
+
+<!-- Popular Events Section -->
+<section class="section" style="background-color: var(--gray-50);">
+    <div class="container">
+        <div class="section-header flex items-center justify-between mb-8">
+            <div>
+                <h2 class="section-title section-title-split">
+                    <span class="section-title-main">Popular</span> <span class="section-title-accent">Events</span>
+                </h2>
+                <p class="section-subtitle section-subtitle-gray">Don't miss these epic gaming experiences</p>
+            </div>
+            <a href="{% url 'popular_events' %}" class="btn btn-outline btn-outline-accent">View All Events</a>
+                    </div>
+        <div class="events-grid">
+            {% for event in popular_events %}
+            <div class="event-card animate-on-scroll" data-category="{{ event.category.slug|default:'all' }}">
+                <div class="event-image">
+                    {% if event.featured_image %}
+                    <img src="{{ event.featured_image.url }}" alt="{{ event.title }}" loading="lazy">
+                    {% else %}
+                    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop" alt="{{ event.title }}" loading="lazy">
+                    {% endif %}
+                    {% if event.category %}
+                    <span class="event-badge">{{ event.category.name }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="event-content">
+                    <h3 class="event-title">{{ event.title }}</h3>
+        
+                    <div class="event-details">
+                        <div class="event-detail">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>{{ event.start_date|date:"M d, Y" }}</span>
+            </div>
+                        <div class="event-detail">
+                            <i class="bi bi-clock"></i>
+                            <span>{{ event.start_time|time:"g:i A" }}</span>
+                            </div>
+                        <div class="event-detail">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>{{ event.city }}, {{ event.state_province }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="event-price">
+                            {% if event.is_free %}
+                            Free
+                            {% else %}
+                            {{ event.price_display|default:'$' }}
+                            {% endif %}
+                        </span>
+                        <a href="{% url 'event_detail' event.slug %}" class="event-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+                </div>
+                {% endfor %}
+            </div>
+    </div>
+</section>
+
+    <!-- Newsletter Section -->
+            <div class="container">
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2 class="newsletter-title">Stay Updated</h2>
+            <p class="newsletter-description">Get notified about the latest gaming events, exclusive offers, and gaming community updates.</p>
+            
+            <div class="newsletter-features">
+                <div class="newsletter-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Weekly event recommendations</span>
+                </div>
+                <div class="newsletter-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Early access to tickets</span>
+                </div>
+                <div class="newsletter-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Gaming community news</span>
+                </div>
+                <div class="newsletter-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Exclusive discounts</span>
+                </div>
+            </div>
+        </div>
+        
+        <form class="newsletter-form">
+            <input type="email" class="newsletter-input" placeholder="Enter your email address" required>
+            <button type="submit" class="newsletter-button">Subscribe</button>
+        </form>
+    </section>
+                        </div>
+{% endblock %}

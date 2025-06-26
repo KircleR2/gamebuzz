@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}{{ category.name }} Events - GameBuzz{% endblock %}
+
+{% block content %}
+<!-- Category Header -->
+<section class="section category-header">
+    <div class="container">
+        <div class="category-header-content">
+            <p class="in-gamebuzz">in GameBuzz</p>
+            <h1 class="category-title">{{ category.name }}</h1>
+            {% if category.description %}
+            <p class="category-description">{{ category.description }}</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Category Events -->
+<section class="section">
+    <div class="container">
+        <!-- Filter Options -->
+        <div class="filter-options">
+            <div class="filter-dropdown">
+                <label for="sort-by">Sort By:</label>
+                <select id="sort-by" class="form-select">
+                    <option value="date-asc">Date (Earliest First)</option>
+                    <option value="date-desc">Date (Latest First)</option>
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Events Grid -->
+        <div class="events-grid">
+            {% for event in events %}
+            <div class="event-card animate-on-scroll">
+                <div class="event-image">
+                    {% if event.featured_image %}
+                    <img src="{{ event.featured_image.url }}" alt="{{ event.title }}" loading="lazy">
+                    {% else %}
+                    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop" alt="{{ event.title }}" loading="lazy">
+                    {% endif %}
+                    <span class="event-badge">{{ category.name }}</span>
+                </div>
+                
+                <div class="event-content">
+                    <h3 class="event-title">{{ event.title }}</h3>
+                    
+                    <div class="event-details">
+                        <div class="event-detail">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>{{ event.start_date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="event-detail">
+                            <i class="bi bi-clock"></i>
+                            <span>{{ event.start_time|time:"g:i A" }}</span>
+                        </div>
+                        <div class="event-detail">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>{{ event.city }}, {{ event.state_province }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="event-price">
+                            {% if event.is_free %}
+                            Free
+                            {% else %}
+                            {{ event.price_display|default:'$' }}
+                            {% endif %}
+                        </span>
+                        <a href="{% url 'event_detail' event.slug %}" class="event-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="no-events-message">
+                <i class="bi bi-calendar-x"></i>
+                <h3>No events found</h3>
+                <p>There are currently no {{ category.name }} events scheduled. Please check back later or explore other categories.</p>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <div class="pagination">
+            <div class="pagination-container">
+                {% if page_obj.has_previous %}
+                <a href="?page=1" class="pagination-item">&laquo; First</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="pagination-item">Previous</a>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="pagination-item active">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}" class="pagination-item">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="pagination-item">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-item">Last &raquo;</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Other Categories Section -->
+<section class="section" style="background-color: var(--gray-50);">
+    <div class="container">
+        <h2 class="section-title">Explore Other Categories</h2>
+        <p class="section-subtitle">Discover more gaming events that match your interests</p>
+        
+        <div class="categories-grid">
+            {% for cat in categories %}
+            {% if cat.id != category.id %}
+            <div class="category-card">
+                <a href="{% url 'category_events' cat.slug %}">
+                    <div class="category-icon">
+                        <i class="bi {{ cat.icon|default:'bi-controller' }}"></i>
+                    </div>
+                    <h3 class="category-title">{{ cat.name }}</h3>
+                </a>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<div class="container">
+    <section class="newsletter">
+        <div class="newsletter-content">
+            <h2 class="newsletter-title">Stay Updated</h2>
+            <p class="newsletter-description">Get notified about the latest {{ category.name }} events, exclusive offers, and gaming community updates.</p>
+            
+            <div class="newsletter-features">
+                <div class="newsletter-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Weekly event recommendations</span>
+                </div>
+                <div class="newsletter-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Early access to tickets</span>
+                </div>
+                <div class="newsletter-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Gaming community news</span>
+                </div>
+                <div class="newsletter-feature">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Exclusive discounts</span>
+                </div>
+            </div>
+        </div>
+        
+        <form class="newsletter-form">
+            <input type="email" class="newsletter-input" placeholder="Enter your email address" required>
+            <button type="submit" class="newsletter-button">Subscribe</button>
+        </form>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .category-header {
+        background-color: var(--primary-blue);
+        color: white;
+        padding: 5rem 0;
+        margin-bottom: 2rem;
+    }
+    
+    .category-header-content {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .in-gamebuzz {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+        opacity: 0.8;
+    }
+    
+    .category-title {
+        font-size: 4rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        color: #FFD700;
+    }
+    
+    .category-description {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.9;
+        max-width: 600px;
+    }
+    
+    .category-icon {
+        font-size: 3rem;
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .filter-options {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 2rem;
+    }
+    
+    .filter-dropdown {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .form-select {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--gray-300);
+        border-radius: 0.25rem;
+        background-color: white;
+    }
+    
+    .no-events-message {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 3rem;
+        background-color: var(--gray-100);
+        border-radius: 0.5rem;
+    }
+    
+    .no-events-message i {
+        font-size: 3rem;
+        color: var(--gray-400);
+        margin-bottom: 1rem;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        margin-top: 3rem;
+    }
+    
+    .pagination-container {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .pagination-item {
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--gray-300);
+        border-radius: 0.25rem;
+        color: var(--gray-700);
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    
+    .pagination-item:hover {
+        background-color: var(--gray-100);
+    }
+    
+    .pagination-item.active {
+        background-color: var(--primary-blue);
+        color: white;
+        border-color: var(--primary-blue);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Sort events functionality
+        const sortSelect = document.getElementById('sort-by');
+        if (sortSelect) {
+            sortSelect.addEventListener('change', function() {
+                const urlParams = new URLSearchParams(window.location.search);
+                urlParams.set('sort', this.value);
+                window.location.search = urlParams.toString();
+            });
+            
+            // Set the current sort value
+            const urlParams = new URLSearchParams(window.location.search);
+            const currentSort = urlParams.get('sort');
+            if (currentSort) {
+                sortSelect.value = currentSort;
+            }
+        }
+    });
+</script>
+{% endblock %} 

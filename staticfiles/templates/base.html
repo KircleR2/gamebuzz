@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}GameBuzz - Discover Amazing Gaming Events{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- GameBuzz CSS -->
+    <link rel="stylesheet" href="{% static 'css/gamebuzz.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <!-- Logo -->
+            <a href="{% url 'event_list' %}" class="logo">GameBuzz</a>
+            
+            <!-- Navigation -->
+            <nav class="nav">
+                <a href="#events" class="nav-link">Events</a>
+                <a href="#categories" class="nav-link">Categories</a>
+                <a href="#about" class="nav-link">About</a>
+                <a href="#contact" class="nav-link">Contact</a>
+            </nav>
+            
+            <!-- Header Actions -->
+            <div class="header-actions">
+                <div class="header-signin">
+                    <a href="#" class="btn btn-primary">Sign In</a>
+                </div>
+                
+                <!-- Mobile menu button -->
+                <button class="mobile-menu-button hidden md:block">
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                    <span class="hamburger-line"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu absolute top-full left-0 w-full bg-white border-b border-gray-200 hidden">
+        <div class="container py-4">
+            <a href="#events" class="block py-2 text-gray-600">Events</a>
+            <a href="#categories" class="block py-2 text-gray-600">Categories</a>
+            <a href="#about" class="block py-2 text-gray-600">About</a>
+            <a href="#contact" class="block py-2 text-gray-600">Contact</a>
+            <a href="#" class="btn btn-primary w-full mt-4">Sign In</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>GameBuzz</h3>
+                    <p class="text-gray-600 mb-4">Your ultimate destination for discovering and connecting with amazing gaming events worldwide.</p>
+                    <div class="flex gap-4">
+                        <a href="#" class="text-gray-400 hover:text-primary-blue"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-blue"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-blue"><i class="bi bi-instagram"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-primary-blue"><i class="bi bi-discord"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="#events">Browse Events</a></li>
+                        <li><a href="#categories">Categories</a></li>
+                        <li><a href="#">Create Event</a></li>
+                        <li><a href="#">Help Center</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Categories</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Esports</a></li>
+                        <li><a href="#">Conventions</a></li>
+                        <li><a href="#">Board Games</a></li>
+                        <li><a href="#">Virtual Reality</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Popular Cities</h3>
+                    <ul class="footer-links">
+                        <li><a href="#">Los Angeles, CA</a></li>
+                        <li><a href="#">New York, NY</a></li>
+                        <li><a href="#">Austin, TX</a></li>
+                        <li><a href="#">Seattle, WA</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2024 GameBuzz. All rights reserved. | <a href="#" class="text-gray-600 hover:text-primary-blue">Privacy Policy</a> | <a href="#" class="text-gray-600 hover:text-primary-blue">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- GameBuzz JavaScript -->
+    <script src="{% static 'js/gamebuzz.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

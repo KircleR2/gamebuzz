@@ -1,0 +1,412 @@
+{
+    "designSystem": {
+      "name": "Modern Gaming Platform Design System",
+      "version": "2.0.0",
+      "description": "Ultra-modern gaming events platform with glassmorphism, gradients, and premium interactions",
+      "category": "Gaming/Entertainment Platform",
+      "designPhilosophy": "Premium, modern, accessible design with emphasis on visual hierarchy and user engagement",
+      
+      "visualStyle": {
+        "aesthetic": "Modern Glassmorphism with Gaming Aesthetics",
+        "mood": "Premium, Energetic, Community-focused",
+        "designPrinciples": [
+          "Visual hierarchy through typography scale",
+          "Consistent spacing and rhythm",
+          "Subtle animations and micro-interactions",
+          "Accessibility-first approach",
+          "Mobile-first responsive design"
+        ]
+      },
+  
+      "colorSystem": {
+        "primary": {
+          "blue": {
+            "hex": "#2563EB",
+            "usage": "Primary brand color, main CTAs, focus states"
+          }
+        },
+        "secondary": {
+          "emerald": {
+            "hex": "#10B981",
+            "usage": "Secondary actions, success states, category badges"
+          }
+        },
+        "accent": {
+          "orange": {
+            "hex": "#F97316",
+            "usage": "Primary CTAs, interactive elements, highlights"
+          },
+          "purple": {
+            "hex": "#7C3AED",
+            "usage": "Popular/featured content, premium features"
+          },
+          "pink": {
+            "hex": "#EC4899",
+            "usage": "Social features, community elements"
+          }
+        },
+        "neutral": {
+          "white": "#FFFFFF",
+          "gray50": "#F9FAFB",
+          "gray100": "#F3F4F6",
+          "gray200": "#E5E7EB",
+          "gray400": "#9CA3AF",
+          "gray600": "#4B5563",
+          "gray800": "#1F2937",
+          "gray900": "#111827",
+          "black": "#000000"
+        },
+        "gradients": {
+          "primary": "linear-gradient(135deg, #2563EB, #10B981)",
+          "accent": "linear-gradient(135deg, #F97316, #EF4444)",
+          "purple": "linear-gradient(135deg, #7C3AED, #EC4899)",
+          "hero": "linear-gradient(135deg, #2563EB 0%, #7C3AED 50%, #10B981 100%)",
+          "usage": "Hero backgrounds, newsletter sections, premium features"
+        }
+      },
+  
+      "typography": {
+        "fontStack": {
+          "primary": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif",
+          "brand": "Inter, -apple-system, BlinkMacSystemFont, sans-serif"
+        },
+        "scale": {
+          "xs": "0.75rem",
+          "sm": "0.875rem", 
+          "base": "1rem",
+          "lg": "1.125rem",
+          "xl": "1.25rem",
+          "2xl": "1.5rem",
+          "3xl": "1.875rem",
+          "4xl": "2.25rem",
+          "5xl": "3rem",
+          "6xl": "3.75rem",
+          "7xl": "4.5rem"
+        },
+        "weights": {
+          "normal": "400",
+          "medium": "500", 
+          "semibold": "600",
+          "bold": "700"
+        },
+        "hierarchy": {
+          "h1": {
+            "size": "5xl-7xl",
+            "weight": "bold",
+            "lineHeight": "tight",
+            "usage": "Hero titles, main headings"
+          },
+          "h2": {
+            "size": "4xl-5xl", 
+            "weight": "bold",
+            "lineHeight": "tight",
+            "usage": "Section headings"
+          },
+          "h3": {
+            "size": "lg-xl",
+            "weight": "semibold-bold",
+            "usage": "Card titles, subsection headings"
+          },
+          "body": {
+            "size": "base-lg",
+            "weight": "normal",
+            "lineHeight": "relaxed",
+            "usage": "Body text, descriptions"
+          },
+          "caption": {
+            "size": "sm-xs",
+            "weight": "medium",
+            "usage": "Labels, metadata, small text"
+          }
+        }
+      },
+  
+      "spacing": {
+        "scale": "0.25rem base unit (4px)",
+        "container": {
+          "maxWidth": "1280px (7xl)",
+          "padding": "1rem mobile, 1.5rem tablet, 2rem desktop",
+          "center": true
+        },
+        "sections": {
+          "paddingY": "5rem (20)",
+          "gap": "3rem-5rem between sections"
+        },
+        "components": {
+          "padding": "1rem-2rem internal",
+          "gap": "1rem-2rem between elements",
+          "margin": "0.5rem-1rem for spacing"
+        }
+      },
+  
+      "borderRadius": {
+        "sm": "0.25rem",
+        "md": "0.375rem", 
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "2xl": "1rem",
+        "3xl": "1.5rem",
+        "full": "9999px",
+        "usage": {
+          "buttons": "md-lg",
+          "cards": "lg-2xl", 
+          "sections": "2xl-3xl",
+          "badges": "full"
+        }
+      },
+  
+      "shadows": {
+        "sm": "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+        "md": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+        "lg": "0 10px 15px -3px rgba(0, 0, 0, 0.1)",
+        "xl": "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+        "2xl": "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+        "usage": {
+          "cards": "md on default, xl on hover",
+          "modals": "2xl",
+          "dropdowns": "lg"
+        }
+      },
+  
+      "effects": {
+        "glassmorphism": {
+          "background": "rgba(255, 255, 255, 0.1)",
+          "backdropBlur": "blur(8px-16px)",
+          "border": "1px solid rgba(255, 255, 255, 0.2)",
+          "usage": "Overlays, modals, premium sections"
+        },
+        "gradientText": {
+          "background": "linear-gradient(to right, color1, color2)",
+          "backgroundClip": "text",
+          "textFillColor": "transparent",
+          "usage": "Brand text, featured headings, highlights"
+        },
+        "animatedBackgrounds": {
+          "floatingElements": "Subtle floating circles with blur and opacity",
+          "gradientShift": "Slow gradient color transitions",
+          "pulseEffect": "Gentle pulsing animations on key elements"
+        }
+      },
+  
+      "componentPatterns": {
+        "header": {
+          "structure": "Logo + Navigation + Search + Actions",
+          "behavior": "Sticky with backdrop blur",
+          "height": "4rem (16)",
+          "background": "white/90 with backdrop-blur",
+          "border": "Bottom border subtle",
+          "responsive": "Hamburger menu on mobile"
+        },
+  
+        "hero": {
+          "structure": "Background + Overlay + Content + Stats",
+          "height": "600px (150)",
+          "background": "Image with gradient overlay",
+          "overlay": "Multi-color gradient with 85-90% opacity",
+          "content": {
+            "layout": "Centered with max-width",
+            "title": "Large bold text with gradient accent",
+            "subtitle": "Medium text with opacity",
+            "cta": "Enhanced search bar with glassmorphism"
+          },
+          "stats": "Overlapping cards with negative margin"
+        },
+  
+        "cards": {
+          "base": {
+            "background": "White",
+            "border": "Subtle gray border",
+            "borderRadius": "lg-xl",
+            "padding": "1.5rem",
+            "shadow": "md default, xl on hover",
+            "transition": "all 0.3s ease"
+          },
+          "hover": {
+            "transform": "translateY(-4px)",
+            "shadow": "Increased shadow",
+            "scale": "1.02 for images"
+          },
+          "content": {
+            "image": "Aspect ratio 16:9, object-cover",
+            "badge": "Absolute positioned, colored background",
+            "title": "Bold, line-clamp for overflow",
+            "metadata": "Small text with icons",
+            "cta": "Colored button aligned right"
+          }
+        },
+  
+        "buttons": {
+          "primary": {
+            "background": "Accent color (orange)",
+            "color": "White",
+            "padding": "0.75rem 1.5rem",
+            "borderRadius": "lg",
+            "fontWeight": "semibold",
+            "hover": "Slight opacity change + scale",
+            "transition": "all 0.2s"
+          },
+          "secondary": {
+            "background": "Transparent",
+            "border": "2px solid secondary color",
+            "color": "Inherit",
+            "hover": "Fill with border color"
+          },
+          "ghost": {
+            "background": "Transparent", 
+            "hover": "Light background fill"
+          }
+        },
+  
+        "sections": {
+          "pattern": "Title + Description + Content Grid + CTA",
+          "title": {
+            "size": "4xl-5xl",
+            "weight": "bold",
+            "accent": "Gradient text on key words"
+          },
+          "description": {
+            "size": "lg-xl",
+            "color": "Gray-600",
+            "maxWidth": "2xl centered"
+          },
+          "grid": {
+            "responsive": "1 col mobile, 2-4 cols desktop",
+            "gap": "2rem",
+            "alignment": "Items stretch"
+          }
+        },
+  
+        "newsletter": {
+          "background": "Multi-color gradient",
+          "effects": "Animated floating elements",
+          "layout": "Two column on desktop",
+          "form": "Glassmorphism container",
+          "features": "Icon + text grid layout"
+        }
+      },
+  
+      "layoutSystem": {
+        "grid": {
+          "columns": {
+            "mobile": "1",
+            "tablet": "2", 
+            "desktop": "3-4",
+            "large": "4-6"
+          },
+          "gap": "1.5rem-2rem",
+          "responsive": "CSS Grid with auto-fit/auto-fill"
+        },
+        "breakpoints": {
+          "sm": "640px",
+          "md": "768px", 
+          "lg": "1024px",
+          "xl": "1280px",
+          "2xl": "1536px"
+        },
+        "container": {
+          "maxWidth": "7xl (1280px)",
+          "padding": "Responsive padding",
+          "center": "mx-auto"
+        }
+      },
+  
+      "interactionPatterns": {
+        "hover": {
+          "cards": "Lift + shadow increase + image scale",
+          "buttons": "Opacity/background change + subtle scale",
+          "links": "Color transition",
+          "icons": "Scale + color change"
+        },
+        "transitions": {
+          "duration": "0.2s-0.3s",
+          "easing": "ease-out, ease-in-out",
+          "properties": "transform, opacity, colors, shadows"
+        },
+        "focus": {
+          "outline": "2px solid primary color",
+          "ring": "Focus ring with primary color + opacity"
+        },
+        "loading": {
+          "skeleton": "Animated gradient backgrounds",
+          "spinners": "Subtle rotating elements",
+          "progress": "Gradient progress bars"
+        }
+      },
+  
+      "iconSystem": {
+        "library": "Lucide React",
+        "sizes": {
+          "xs": "1rem (4)",
+          "sm": "1.25rem (5)", 
+          "md": "1.5rem (6)",
+          "lg": "2rem (8)",
+          "xl": "2.5rem (10)"
+        },
+        "usage": {
+          "navigation": "sm size",
+          "cards": "md-lg size", 
+          "features": "lg-xl size",
+          "buttons": "sm size"
+        },
+        "colors": "Match text color or use accent colors"
+      },
+  
+      "responsiveStrategy": {
+        "approach": "Mobile-first design",
+        "navigation": "Hamburger menu on mobile",
+        "grids": "Stack on mobile, expand on larger screens",
+        "typography": "Smaller scales on mobile",
+        "spacing": "Reduced padding/margins on mobile",
+        "images": "Maintain aspect ratios, optimize sizes"
+      },
+  
+      "accessibilityGuidelines": {
+        "colorContrast": "WCAG AA compliant (4.5:1 minimum)",
+        "focusManagement": "Visible focus indicators",
+        "semanticHTML": "Proper heading hierarchy (h1-h6)",
+        "altText": "Descriptive alt text for all images",
+        "keyboardNavigation": "Full keyboard accessibility",
+        "screenReaders": "ARIA labels and descriptions"
+      },
+  
+      "performanceOptimizations": {
+        "images": "WebP/AVIF formats, lazy loading, responsive sizes",
+        "fonts": "System font fallbacks, font-display: swap",
+        "animations": "GPU-accelerated transforms, reduced motion support",
+        "code": "Component lazy loading, tree shaking"
+      },
+  
+      "contentStructure": {
+        "hierarchy": "Header > Hero > Categories > Featured > Popular > Newsletter > Footer",
+        "sections": {
+          "hero": "Title + Subtitle + Search + Stats overlay",
+          "categories": "Grid of icon cards with hover effects",
+          "events": "Card grids with image + metadata + CTA",
+          "newsletter": "Two-column with features + form",
+          "footer": "Multi-column with brand + links + contact"
+        }
+      },
+  
+      "dataPatterns": {
+        "events": {
+          "required": ["id", "title", "date", "location", "price"],
+          "optional": ["image", "category", "rating", "participants"],
+          "metadata": "Structured for easy filtering/sorting"
+        },
+        "categories": {
+          "structure": "id + title + icon + color",
+          "icons": "Lucide React components",
+          "colors": "Predefined color palette"
+        }
+      },
+  
+      "implementationNotes": {
+        "framework": "Next.js with TypeScript",
+        "styling": "Tailwind CSS with custom config",
+        "components": "Shadcn/ui component library",
+        "stateManagement": "React hooks for local state",
+        "animations": "CSS transitions + Tailwind classes",
+        "deployment": "Optimized for Vercel deployment"
+      }
+    }
+  }

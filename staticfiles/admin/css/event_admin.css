@@ -1,0 +1,59 @@
+/* Event Admin Row Styling */
+
+/* Published events - Green background */
+.published-event {
+    background-color: #d4edda !important;
+}
+
+/* Cancelled events - Red background */
+.cancelled-event {
+    background-color: #f8d7da !important;
+}
+
+/* Ended events - Gray background */
+.ended-event {
+    background-color: #e2e3e5 !important;
+}
+
+/* Draft events - Default background (no special styling) */
+
+/* Hover effects for better UX */
+.published-event:hover {
+    background-color: #c3e6cb !important;
+}
+
+.cancelled-event:hover {
+    background-color: #f5c6cb !important;
+}
+
+.ended-event:hover {
+    background-color: #d6d8db !important;
+}
+
+/* Make sure text remains readable */
+.published-event td,
+.cancelled-event td,
+.ended-event td {
+    color: #212529 !important;
+}
+
+/* Status field styling */
+.field-status .published {
+    color: #155724;
+    font-weight: bold;
+}
+
+.field-status .cancelled {
+    color: #721c24;
+    font-weight: bold;
+}
+
+.field-status .ended {
+    color: #6c757d;
+    font-weight: bold;
+}
+
+.field-status .draft {
+    color: #856404;
+    font-weight: bold;
+} 

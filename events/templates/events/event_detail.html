@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}{{ event.title }} - GameBuzz{% endblock %}
+
+{% block content %}
+<!-- Event Hero Section -->
+<section class="event-hero" style="min-height: 40vh;">
+    <div class="event-hero-background">
+        {% if event.featured_image %}
+        <img src="{{ event.featured_image.url }}" alt="{{ event.title }}" class="event-hero-image">
+        {% else %}
+        <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop" alt="{{ event.title }}" class="event-hero-image">
+        {% endif %}
+    </div>
+</section>
+
+<!-- Event Details Section -->
+<section class="section" style="padding-top: 2rem;">
+    <div class="container">
+        <div class="event-details-grid">
+            <!-- Main Content -->
+            <div class="event-main-content">
+                <div class="event-title-section" style="margin-bottom: 2rem;">
+                    <div class="event-hero-badge">
+                        {% if event.category %}
+                        <span class="event-category-badge">{{ event.category.name }}</span>
+                        {% endif %}
+                        {% if event_stats.is_ongoing %}
+                        <span class="event-status-badge ongoing">Happening Now</span>
+                        {% elif event_stats.is_upcoming %}
+                        <span class="event-status-badge upcoming">Upcoming</span>
+                        {% endif %}
+                    </div>
+                    <h1 class="event-main-title">{{ event.title }}</h1>
+                </div>
+
+                <div class="event-description">
+                    <h2 class="section-title text-left">About This Event</h2>
+                    <p class="event-description-text">{{ event.description|safe }}</p>
+                </div>
+                
+                {% if event.short_description %}
+                <div class="event-highlights">
+                    <h3>Event Highlights</h3>
+                    <p>{{ event.short_description }}</p>
+                </div>
+                {% endif %}
+                
+                {% if event.organizer_description %}
+                <div class="event-organizer">
+                    <h3>About the Organizer</h3>
+                    <div class="organizer-info">
+                        {% if event.organizer_logo %}
+                        <img src="{{ event.organizer_logo.url }}" alt="{{ event.organizer_name }}" class="organizer-logo">
+                        {% endif %}
+                        <div>
+                            <h4>{{ event.organizer_name }}</h4>
+                            <p>{{ event.organizer_description }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if event.faq %}
+                <div class="event-faq">
+                    <h3>Frequently Asked Questions</h3>
+                    <div class="faq-list">
+                        {% for faq in event.faq %}
+                        <div class="faq-item">
+                            <h4>{{ faq.question }}</h4>
+                            <p>{{ faq.answer }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if event.additional_info %}
+                <div class="event-additional-info">
+                    <h3>Additional Information</h3>
+                    <p>{{ event.additional_info }}</p>
+                </div>
+                {% endif %}
+                
+                {% if event.tags and event.tags.all %}
+                <div class="event-tags" style="margin-top: 2rem;">
+                    <h3 class="section-subtitle-small">Tags</h3>
+                    <div class="tags-list">
+                        {% for tag in event.tags.all %}
+                        <span class="tag-item">{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="event-sidebar">
+                <div class="event-card-sidebar">
+                    <div class="event-price-section">
+                        <h3>Event Price</h3>
+                        <div class="event-price-display">
+                            {% if event.is_free %}
+                            <span class="price-free">Free</span>
+                            {% else %}
+                            <span class="price-amount">{{ event.price_display|default:"Contact for pricing" }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="event-details-sidebar">
+                        <h3>Event Details</h3>
+                        <div class="detail-item">
+                            <i class="bi bi-calendar-event"></i>
+                            <div>
+                                <strong>Date</strong>
+                                <span>{{ event.start_date|date:"F d, Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="bi bi-clock"></i>
+                            <div>
+                                <strong>Time</strong>
+                                <span>{{ event.start_time|time:"g:i A" }} - {{ event.end_time|time:"g:i A" }}</span>
+                            </div>
+                        </div>
+                        <div class="detail-item">
+                            <i class="bi bi-geo-alt"></i>
+                            <div>
+                                <strong>Location</strong>
+                                <span>{{ event.location_name }}</span>
+                                <span class="location-address">{{ event.address }}, {{ event.city }}, {{ event.state_province }}</span>
+                            </div>
+                        </div>
+                        {% if event.max_capacity %}
+                        <div class="detail-item">
+                            <i class="bi bi-people"></i>
+                            <div>
+                                <strong>Capacity</strong>
+                                <span>{{ event.max_capacity }} people</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if event.venue_directions %}
+                        <div class="detail-item">
+                            <i class="bi bi-map"></i>
+                            <div>
+                                <strong>Directions</strong>
+                                <span>{{ event.venue_directions }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if event.registration_required %}
+                    <div class="event-registration">
+                        <a href="{{ event.registration_url }}" class="btn btn-primary w-full" target="_blank">
+                            <i class="bi bi-ticket-perforated"></i>
+                            Register for Event
+                        </a>
+                        <p class="registration-note">Registration required to attend this event</p>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="event-share">
+                        <h4>Share This Event</h4>
+                        <div class="share-buttons">
+                            <button class="share-btn" onclick="shareToFacebook()">
+                                <i class="bi bi-facebook"></i>
+                            </button>
+                            <button class="share-btn" onclick="shareToTwitter()">
+                                <i class="bi bi-twitter"></i>
+                            </button>
+                            <button class="share-btn" onclick="shareToLinkedIn()">
+                                <i class="bi bi-linkedin"></i>
+                            </button>
+                            <button class="share-btn" onclick="copyEventLink()">
+                                <i class="bi bi-link-45deg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Related Events Section -->
+{% if related_events %}
+<section class="section" style="background-color: var(--gray-50);">
+    <div class="container">
+        <h2 class="section-title">Related Events</h2>
+        <p class="section-subtitle">Check out these similar events you might enjoy</p>
+        
+        <div class="events-grid">
+            {% for related_event in related_events %}
+            <div class="event-card animate-on-scroll">
+                <div class="event-image">
+                    {% if related_event.featured_image %}
+                    <img src="{{ related_event.featured_image.url }}" alt="{{ related_event.title }}" loading="lazy">
+                    {% else %}
+                    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop" alt="{{ related_event.title }}" loading="lazy">
+                    {% endif %}
+                    {% if related_event.category %}
+                    <span class="event-badge">{{ related_event.category.name }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="event-content">
+                    <h3 class="event-title">{{ related_event.title }}</h3>
+                    
+                    <div class="event-details">
+                        <div class="event-detail">
+                            <i class="bi bi-calendar-event"></i>
+                            <span>{{ related_event.start_date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="event-detail">
+                            <i class="bi bi-clock"></i>
+                            <span>{{ related_event.start_time|time:"g:i A" }}</span>
+                        </div>
+                        <div class="event-detail">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>{{ related_event.city }}, {{ related_event.state_province }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between">
+                        <span class="event-price">
+                            {% if related_event.is_free %}
+                            Free
+                            {% else %}
+                            {{ related_event.price_display|default:'$' }}
+                            {% endif %}
+                        </span>
+                        <a href="{% url 'event_detail' related_event.slug %}" class="event-link">View Details <i class="bi bi-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function shareEvent() {
+    if (navigator.share) {
+        navigator.share({
+            title: '{{ event.title }}',
+            text: 'Check out this amazing gaming event!',
+            url: window.location.href
+        });
+    } else {
+        copyEventLink();
+    }
+}
+
+function shareToFacebook() {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('{{ event.title }}');
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+}
+
+function shareToTwitter() {
+    const url = encodeURIComponent(window.location.href);
+    const text = encodeURIComponent('Check out this amazing gaming event: {{ event.title }}');
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+}
+
+function shareToLinkedIn() {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent('{{ event.title }}');
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${url}`, '_blank');
+}
+
+function copyEventLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+        showNotification('Event link copied to clipboard!', 'success');
+    }).catch(() => {
+        showNotification('Failed to copy link', 'error');
+    });
+}
+</script>
+{% endblock %} 
