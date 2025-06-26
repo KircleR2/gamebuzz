@@ -4,18 +4,41 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import Category, Event, NewsletterSubscriber
 from django.utils import timezone
+from .forms import IconField
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ('name', 'parent', 'order', 'is_active', 'icon', 'created_at')
+    list_display = ('name', 'parent', 'order', 'is_active', 'display_icon', 'created_at')
     list_filter = ('is_active', 'parent')
     search_fields = ('name', 'description')
     prepopulated_fields = {'slug': ('name',)}
     ordering = ('order', 'name')
-    list_editable = ('order', 'is_active', 'icon')
+    list_editable = ('order', 'is_active')
     
     def get_queryset(self, request):
         return super().get_queryset(request).select_related('parent')
+    
+    def display_icon(self, obj):
+        """Display the icon in the list view"""
+        if obj.icon:
+            return format_html('<i class="{}" style="font-size: 1.2rem;"></i>', obj.icon)
+        return "-"
+    display_icon.short_description = "Icon"
+    
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        """Override form field for icon to use our custom IconField"""
+        if db_field.name == 'icon':
+            return IconField(required=False, help_text=db_field.help_text)
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
+    
+    class Media:
+        css = {
+            'all': [
+                'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css',
+                'css/icon-picker.css',
+            ]
+        }
+        js = ['js/icon-picker.js']
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):

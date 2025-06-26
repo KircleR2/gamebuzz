@@ -7,6 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
     initMobileMenu();
     initLazyLoading();
     initAnimations();
+    initEventCardEffects();
+    initStatsAnimation();
+    loadHeroEvents(); // Load hero events from API and initialize slider
 });
 
 // Search functionality
@@ -55,17 +58,64 @@ function initNewsletterForm() {
             e.preventDefault();
             
             const emailInput = this.querySelector('.newsletter-input');
+            const submitButton = this.querySelector('.newsletter-button');
             const email = emailInput.value.trim();
             
             if (email && isValidEmail(email)) {
-                // Show success message
-                showNotification('¡Gracias por suscribirte! Te mantendremos informado sobre los mejores eventos.', 'success');
-                emailInput.value = '';
+                // Disable button and show loading state
+                submitButton.disabled = true;
+                submitButton.textContent = 'Subscribing...';
+                
+                // Send subscription request to backend
+                fetch('/api/newsletter/subscribe/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ email: email })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'reactivated') {
+                        showNotification(data.message, 'success');
+                    } else if (data.message) {
+                        showNotification(data.message, 'success');
+                    } else {
+                        showNotification('Successfully subscribed to our newsletter!', 'success');
+                    }
+                    emailInput.value = '';
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Something went wrong. Please try again.', 'error');
+                })
+                .finally(() => {
+                    // Re-enable button
+                    submitButton.disabled = false;
+                    submitButton.textContent = 'Subscribe';
+                });
             } else {
-                showNotification('Por favor, ingresa un email válido.', 'error');
+                showNotification('Please enter a valid email address.', 'error');
             }
         });
     }
+}
+
+// Get CSRF token from cookies
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
 }
 
 // Mobile menu toggle
@@ -269,11 +319,136 @@ function initStatsAnimation() {
     }
 }
 
-// Call additional initializations
-document.addEventListener('DOMContentLoaded', function() {
-    initEventCardEffects();
-    initStatsAnimation();
-});
+// Hero slider functionality
+function initHeroSlider() {
+    const heroSlider = document.querySelector('.hero-slider');
+    const heroSlides = document.querySelectorAll('.hero-slide');
+    const sliderDots = document.querySelectorAll('.hero-slider-dot');
+    
+    if (!heroSlider || heroSlides.length === 0) return;
+    
+    let currentSlide = 0;
+    
+    // Add click handlers to slides
+    heroSlides.forEach(slide => {
+        const eventSlug = slide.getAttribute('data-event-slug');
+        slide.addEventListener('click', function() {
+            if (eventSlug) {
+                window.location.href = `/event/${eventSlug}/`;
+            }
+        });
+    });
+    
+    let slideInterval;
+    
+    // Show first slide
+    showSlide(0);
+    
+    // Auto-rotate slides
+    function startAutoRotate() {
+        slideInterval = setInterval(() => {
+            currentSlide = (currentSlide + 1) % heroSlides.length;
+            showSlide(currentSlide);
+        }, 5000); // Change slide every 5 seconds
+    }
+    
+    // Stop auto-rotation
+    function stopAutoRotate() {
+        if (slideInterval) {
+            clearInterval(slideInterval);
+        }
+    }
+    
+    // Show specific slide
+    function showSlide(index) {
+        // Hide all slides and disable pointer events
+        heroSlides.forEach(slide => {
+            slide.classList.remove('active');
+            slide.style.pointerEvents = 'none';
+        });
+        
+        // Remove active class from all dots
+        sliderDots.forEach(dot => {
+            dot.classList.remove('active');
+        });
+        
+        // Show current slide and enable pointer events
+        if (heroSlides[index]) {
+            heroSlides[index].classList.add('active');
+            heroSlides[index].style.pointerEvents = 'auto';
+        }
+        
+        // Activate current dot
+        if (sliderDots[index]) {
+            sliderDots[index].classList.add('active');
+        }
+        
+        currentSlide = index;
+    }
+    
+    // Add click handlers to dots
+    sliderDots.forEach((dot, index) => {
+        dot.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent slide click when clicking dot
+            showSlide(index);
+            stopAutoRotate();
+            startAutoRotate(); // Restart auto-rotation
+        });
+    });
+    
+    // Pause auto-rotation on hover
+    heroSlider.addEventListener('mouseenter', stopAutoRotate);
+    heroSlider.addEventListener('mouseleave', startAutoRotate);
+    
+    // Start auto-rotation
+    startAutoRotate();
+    
+    // Add keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') {
+            currentSlide = (currentSlide - 1 + heroSlides.length) % heroSlides.length;
+            showSlide(currentSlide);
+            stopAutoRotate();
+            startAutoRotate();
+        } else if (e.key === 'ArrowRight') {
+            currentSlide = (currentSlide + 1) % heroSlides.length;
+            showSlide(currentSlide);
+            stopAutoRotate();
+            startAutoRotate();
+        }
+    });
+    
+    // Add touch/swipe support for mobile
+    let touchStartX = 0;
+    let touchEndX = 0;
+    
+    heroSlider.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    
+    heroSlider.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+    
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        const diff = touchStartX - touchEndX;
+        
+        if (Math.abs(diff) > swipeThreshold) {
+            if (diff > 0) {
+                // Swipe left - next slide
+                currentSlide = (currentSlide + 1) % heroSlides.length;
+            } else {
+                // Swipe right - previous slide
+                currentSlide = (currentSlide - 1 + heroSlides.length) % heroSlides.length;
+            }
+            showSlide(currentSlide);
+            stopAutoRotate();
+            startAutoRotate();
+        }
+    }
+}
 
 // Add CSS animations
 const style = document.createElement('style');
@@ -332,4 +507,85 @@ style.textContent = `
         transform: rotate(-45deg) translate(7px, -6px);
     }
 `;
-document.head.appendChild(style); 
+document.head.appendChild(style);
+
+// Load hero events from API
+function loadHeroEvents() {
+    const heroSection = document.querySelector('.hero');
+    if (!heroSection) return;
+    
+    // Check if we already have hero events (from template)
+    const existingHeroEvents = document.querySelectorAll('.hero-slide');
+    if (existingHeroEvents.length > 0) {
+        // Hero events already loaded from template, just initialize slider
+        initHeroSlider();
+        return;
+    }
+    
+    // Load hero events from API only if none exist in template
+    fetch('/api/homepage/hero-events/')
+        .then(response => response.json())
+        .then(events => {
+            if (events && events.length > 0) {
+                updateHeroSection(events);
+            }
+        })
+        .catch(error => {
+            console.error('Error loading hero events:', error);
+        });
+}
+
+// Update hero section with dynamic events
+function updateHeroSection(events) {
+    const heroSection = document.querySelector('.hero');
+    if (!heroSection) return;
+    
+    // Create dynamic hero content - simplified without event data overlay
+    const heroHTML = `
+        <div class="hero-slider">
+            ${events.map((event, index) => `
+                <div class="hero-slide ${index === 0 ? 'active' : ''}" 
+                     style="background-image: url('${event.hero_image || event.featured_image || 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop'}')"
+                     data-event-slug="${event.slug}">
+                    <div class="hero-overlay"></div>
+                    <div class="hero-content"></div>
+                </div>
+            `).join('')}
+        </div>
+        
+        ${events.length > 1 ? `
+            <div class="hero-slider-nav">
+                ${events.map((_, index) => `
+                    <button class="hero-slider-dot ${index === 0 ? 'active' : ''}" data-slide="${index}"></button>
+                `).join('')}
+            </div>
+        ` : ''}
+    `;
+    
+    // Replace static hero content with dynamic content
+    heroSection.innerHTML = heroHTML;
+    heroSection.classList.add('hero-dynamic');
+    
+    // Initialize slider after updating content
+    initHeroSlider();
+}
+
+// Format date for display
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        month: 'short', 
+        day: 'numeric', 
+        year: 'numeric' 
+    });
+}
+
+// Format time for display
+function formatTime(timeString) {
+    const time = new Date(`2000-01-01T${timeString}`);
+    return time.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+    });
+} 

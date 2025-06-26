@@ -1,0 +1,32 @@
+.icon-picker-container {
+    display: flex;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.icon-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin-left: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+}
+
+.icon-picker-select {
+    min-width: 200px;
+}
+
+/* Style for the dropdown options to show icons */
+.icon-option {
+    display: flex;
+    align-items: center;
+}
+
+.icon-option i {
+    margin-right: 8px;
+    font-size: 1.2em;
+} 

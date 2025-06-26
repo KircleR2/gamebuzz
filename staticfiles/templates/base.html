@@ -28,10 +28,10 @@
             
             <!-- Navigation -->
             <nav class="nav">
-                <a href="#events" class="nav-link">Events</a>
+                <a href="{% url 'featured_events' %}" class="nav-link">Featured</a>
+                <a href="{% url 'popular_events' %}" class="nav-link">Popular</a>
                 <a href="#categories" class="nav-link">Categories</a>
                 <a href="#about" class="nav-link">About</a>
-                <a href="#contact" class="nav-link">Contact</a>
             </nav>
             
             <!-- Header Actions -->
@@ -53,10 +53,10 @@
     <!-- Mobile Menu -->
     <div class="mobile-menu absolute top-full left-0 w-full bg-white border-b border-gray-200 hidden">
         <div class="container py-4">
-            <a href="#events" class="block py-2 text-gray-600">Events</a>
+            <a href="{% url 'featured_events' %}" class="block py-2 text-gray-600">Featured</a>
+            <a href="{% url 'popular_events' %}" class="block py-2 text-gray-600">Popular</a>
             <a href="#categories" class="block py-2 text-gray-600">Categories</a>
             <a href="#about" class="block py-2 text-gray-600">About</a>
-            <a href="#contact" class="block py-2 text-gray-600">Contact</a>
             <a href="#" class="btn btn-primary w-full mt-4">Sign In</a>
         </div>
     </div>
@@ -84,9 +84,9 @@
                 <div class="footer-section">
                     <h3>Quick Links</h3>
                     <ul class="footer-links">
-                        <li><a href="#events">Browse Events</a></li>
-                        <li><a href="#categories">Categories</a></li>
-                        <li><a href="#">Create Event</a></li>
+                        <li><a href="{% url 'event_list' %}">Home</a></li>
+                        <li><a href="{% url 'featured_events' %}">Featured Events</a></li>
+                        <li><a href="{% url 'popular_events' %}">Popular Events</a></li>
                         <li><a href="#">Help Center</a></li>
                     </ul>
                 </div>
@@ -94,20 +94,28 @@
                 <div class="footer-section">
                     <h3>Categories</h3>
                     <ul class="footer-links">
+                        {% for category in categories|slice:":4" %}
+                        <li><a href="{% url 'category_events' category.slug %}">{{ category.name }}</a></li>
+                        {% empty %}
                         <li><a href="#">Esports</a></li>
                         <li><a href="#">Conventions</a></li>
                         <li><a href="#">Board Games</a></li>
                         <li><a href="#">Virtual Reality</a></li>
+                        {% endfor %}
                     </ul>
                 </div>
                 
                 <div class="footer-section">
                     <h3>Popular Cities</h3>
                     <ul class="footer-links">
+                        {% for city in popular_cities|slice:":4" %}
+                        <li><a href="#">{{ city.city }}, {{ city.state_province }}</a></li>
+                        {% empty %}
                         <li><a href="#">Los Angeles, CA</a></li>
                         <li><a href="#">New York, NY</a></li>
                         <li><a href="#">Austin, TX</a></li>
                         <li><a href="#">Seattle, WA</a></li>
+                        {% endfor %}
                     </ul>
                 </div>
             </div>
