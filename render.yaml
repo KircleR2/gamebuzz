@@ -22,6 +22,10 @@ services:
         value: false
       - key: ALLOWED_HOSTS
         value: .onrender.com
+    disk:
+      name: media
+      mountPath: /opt/render/project/src/media
+      sizeGB: 1
 
 databases:
   - name: gamebuzz_db

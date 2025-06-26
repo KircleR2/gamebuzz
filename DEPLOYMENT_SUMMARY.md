@@ -5,14 +5,17 @@
 1. **build.sh**
    - Build script for Render deployment
    - Installs dependencies, collects static files, runs migrations
+   - Creates media directories and sets permissions
 
 2. **render.yaml**
    - Configuration for Render Blueprint deployment
    - Defines web service and database
    - Sets environment variables
+   - Configures persistent disk for media files
 
 3. **requirements.txt** (updated)
    - Added gunicorn, whitenoise, dj-database-url, psycopg2-binary
+   - Updated package versions
 
 4. **Procfile**
    - Specifies the command to run the application
@@ -27,18 +30,27 @@
    - WhiteNoise integration
    - PostgreSQL database support
    - Security enhancements
+   - Media file configuration
 
 7. **.gitignore**
    - Standard Python/Django gitignore
-   - Excludes virtual environments, database files, etc.
+   - Excludes virtual environment and local settings
 
-8. **README.md** (updated)
-   - Added deployment instructions
+8. **urls.py** (updated)
+   - Configured to serve media files in both development and production
 
-9. **CHANGELOG.md** (updated)
-   - Added deployment changes to changelog
+9. **fix_media_permissions.py**
+   - Custom management command to fix media file permissions
+   - Creates necessary directories
+   - Sets proper file and directory permissions
 
-10. **DEPLOYMENT.md**
+10. **README.md** (updated)
+    - Added deployment instructions
+
+11. **CHANGELOG.md** (updated)
+    - Added deployment changes to changelog
+
+12. **DEPLOYMENT.md**
     - Comprehensive deployment guide
     - Step-by-step instructions for Render deployment
 
@@ -52,12 +64,30 @@
    - Step-by-step instructions in DEPLOYMENT.md
    - Create database and web service separately
 
+## Deployment Instructions
+
+1. Push code to GitHub repository
+2. Deploy to Render using Blueprint or manual setup
+3. Set environment variables
+4. Configure persistent disk for media files
+5. Run post-deployment commands:
+   - Create superuser
+   - Fix media permissions
+   - Load initial data (if needed)
+
+## Media File Configuration
+
+- Media files stored on persistent disk
+- Custom management command to fix permissions
+- Directories created automatically during deployment
+- Media files served correctly in both development and production
+
 ## Next Steps
 
-1. Push your code to a Git repository
-2. Deploy to Render using the Blueprint or manual method
-3. Create a superuser after deployment
-4. Upload initial data if needed
+1. Monitor application performance
+2. Set up regular database backups
+3. Implement monitoring and alerting
+4. Consider scaling options for increased traffic
 
 ## Notes
 

@@ -83,6 +83,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.media",  # Add media context processor
             ],
         },
     },
@@ -160,6 +161,9 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+# Create media directory if it doesn't exist
+os.makedirs(MEDIA_ROOT, exist_ok=True)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
@@ -169,7 +173,7 @@ JAZZMIN_SETTINGS = {
     "site_title": "GameBuzz Admin",
     "site_header": "GameBuzz Admin",
     "site_brand": "GameBuzz",
-    "site_logo": "events_images/Screenshot_2025-06-18_at_1.08.10PM.png",  # Path in your static/media
+    "site_logo": None,  # Remove site_logo to avoid issues with missing files
     "welcome_sign": "Welcome to the GameBuzz Admin!",
     "copyright": "GameBuzz 2025",
     "search_model": ["events.Event", "events.Category"],

@@ -57,7 +57,12 @@ The following files have been set up for deployment:
    - `DEBUG`: false
    - `ALLOWED_HOSTS`: your-app.onrender.com
    - `DJANGO_SETTINGS_MODULE`: event_platform.settings
-5. Click "Create Web Service"
+5. Add a disk for media files:
+   - Click on "Advanced" and then "Add Disk"
+   - Name: `media`
+   - Mount Path: `/opt/render/project/src/media`
+   - Size: 1 GB
+6. Click "Create Web Service"
 
 ## Post-Deployment Steps
 
@@ -84,9 +89,36 @@ If you need to load initial data:
    python manage.py loaddata initial_data.json
    ```
 
-### 3. Configure Media Files
+### 3. Fix Media File Permissions
 
-For production, you should use a cloud storage service like AWS S3 for media files. This requires additional configuration not covered in this guide.
+If you encounter issues with media files not displaying correctly:
+
+1. In your Render dashboard, go to your web service
+2. Click on "Shell"
+3. Run the following command:
+   ```
+   python manage.py fix_media_permissions
+   ```
+   This will create necessary directories and set proper permissions.
+
+### 4. Media File Management
+
+The application is configured to store media files on a persistent disk on Render. This ensures that uploaded images and other media files are preserved between deployments.
+
+If you need to manually upload media files:
+
+1. In your Render dashboard, go to your web service
+2. Click on "Shell"
+3. Use the following commands to create directories and upload files:
+   ```
+   # Create directories if they don't exist
+   mkdir -p media/events_images
+   mkdir -p media/events_hero_images
+   mkdir -p media/organizer_logos
+   
+   # Set permissions
+   chmod -R 755 media
+   ```
 
 ## Troubleshooting
 
@@ -100,7 +132,12 @@ For production, you should use a cloud storage service like AWS S3 for media fil
    - Check that collectstatic ran successfully during build
    - Verify WhiteNoise is properly configured
 
-3. **Application Errors**
+3. **Media Files Not Displaying**
+   - Run the `fix_media_permissions` management command
+   - Check that the media directories exist and have proper permissions
+   - Verify that the persistent disk is properly mounted
+
+4. **Application Errors**
    - Check the logs in your Render dashboard
    - Set DEBUG=true temporarily to see detailed error messages
 
