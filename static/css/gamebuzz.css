@@ -762,6 +762,9 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-6);
+  justify-content: center;
+  margin: 0 auto;
+  max-width: 1000px;
 }
 
 .category-card {
@@ -782,6 +785,7 @@ body {
 .category-card a {
   text-decoration: none;
   display: block;
+  color: inherit;
 }
 
 .category-icon {
@@ -1105,6 +1109,7 @@ body {
   
   .categories-grid {
     grid-template-columns: repeat(4, 1fr);
+    max-width: 800px;
   }
   
   .events-grid {
@@ -1176,7 +1181,8 @@ body {
 
 @media (min-width: 1024px) {
   .categories-grid {
-    grid-template-columns: repeat(8, 1fr);
+    grid-template-columns: repeat(6, 1fr);
+    max-width: 1000px;
   }
   
   .events-grid {
