@@ -35,10 +35,8 @@ class CategoryAdmin(admin.ModelAdmin):
         css = {
             'all': [
                 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css',
-                'css/icon-picker.css',
             ]
         }
-        js = ['js/icon-picker.js']
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):

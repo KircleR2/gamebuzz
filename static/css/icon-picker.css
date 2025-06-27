@@ -1,7 +1,100 @@
+/* Icon Picker Styles */
 .icon-picker-container {
+    position: relative;
+    width: 100%;
+}
+
+.icon-picker-selected {
     display: flex;
     align-items: center;
-    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    background-color: white;
+}
+
+.icon-picker-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 1000;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 15px;
+    width: 600px;
+    max-height: 400px;
+    overflow-y: auto;
+    margin-top: 5px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.icon-picker-search {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 15px;
+}
+
+.icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 12px;
+}
+
+.icon-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.icon-item:hover {
+    border-color: #2563eb;
+    background-color: #f0f7ff;
+}
+
+.icon-item.selected {
+    background-color: #e9f5ff;
+    border-color: #2563eb;
+}
+
+.icon-item i {
+    font-size: 1.5rem;
+    margin-bottom: 5px;
+}
+
+.icon-item span {
+    font-size: 0.7rem;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .icon-picker-dropdown {
+        width: 100%;
+        max-width: 600px;
+    }
+    
+    .icon-picker-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .icon-picker-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
 }
 
 .icon-preview {
@@ -10,7 +103,6 @@
     justify-content: center;
     width: 40px;
     height: 40px;
-    margin-left: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
     background-color: #f8f9fa;
@@ -18,6 +110,7 @@
 
 .icon-picker-select {
     min-width: 200px;
+    vertical-align: middle;
 }
 
 /* Style for the dropdown options to show icons */
@@ -27,6 +120,28 @@
 }
 
 .icon-option i {
+    margin-right: 8px;
+    font-size: 1.2em;
+}
+
+/* Fix for Django admin form layout */
+.form-row .field-icon .icon-picker-select {
+    display: inline-block;
+}
+
+/* Make the icon bigger in the preview */
+.icon-preview i {
+    font-size: 1.5rem;
+}
+
+/* Select2 enhancements if used */
+.select2-container--default .select2-results__option {
+    display: flex;
+    align-items: center;
+}
+
+.select2-container--default .select2-results__option i,
+.select2-container--default .select2-selection__rendered i {
     margin-right: 8px;
     font-size: 1.2em;
 } 
