@@ -15,12 +15,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
+# Basic translations
 msgid "Spanish"
 msgstr "Español"
 
 msgid "English"
 msgstr "Inglés"
 
+# Template translations
 msgid "GameBuzz - Discover Amazing Gaming Events"
 msgstr "GameBuzz - Descubre Increíbles Eventos de Juegos"
 
@@ -42,6 +44,9 @@ msgstr "Destacados"
 msgid "Popular"
 msgstr "Populares"
 
+msgid "Categories"
+msgstr "Categorías"
+
 msgid "About"
 msgstr "Acerca de"
 
@@ -53,6 +58,12 @@ msgstr "Encuentra eventos que coincidan con tus intereses y preferencias de jueg
 
 msgid "Events"
 msgstr "Eventos"
+
+msgid "Featured Events"
+msgstr "Eventos Destacados"
+
+msgid "Popular Events"
+msgstr "Eventos Populares"
 
 msgid "Don't miss these epic gaming experiences"
 msgstr "No te pierdas estas épicas experiencias de juego"
@@ -138,6 +149,7 @@ msgstr "Política de Privacidad"
 msgid "Terms of Service"
 msgstr "Términos de Servicio"
 
+# Admin translations
 msgid "GameBuzz Admin"
 msgstr "Administración de GameBuzz"
 
@@ -147,6 +159,7 @@ msgstr "¡Bienvenido al Panel de Administración de GameBuzz!"
 msgid "GameBuzz Home"
 msgstr "Inicio de GameBuzz"
 
+# Model verbose names
 msgid "Category"
 msgstr "Categoría"
 
@@ -156,12 +169,16 @@ msgstr "Categorías"
 msgid "Event"
 msgstr "Evento"
 
+msgid "Events"
+msgstr "Eventos"
+
 msgid "Newsletter Subscriber"
 msgstr "Suscriptor del Boletín"
 
 msgid "Newsletter Subscribers"
 msgstr "Suscriptores del Boletín"
 
+# Status choices
 msgid "Draft"
 msgstr "Borrador"
 
@@ -173,9 +190,3 @@ msgstr "Cancelado"
 
 msgid "Ended"
 msgstr "Finalizado"
-
-msgid "Featured Events"
-msgstr "Eventos Destacados"
-
-msgid "Popular Events"
-msgstr "Eventos Populares"
