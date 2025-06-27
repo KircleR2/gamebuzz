@@ -1,0 +1,181 @@
+# Spanish translations for GameBuzz.
+# Copyright (C) 2025 GameBuzz
+# This file is distributed under the same license as the GameBuzz package.
+msgid ""
+msgstr ""
+"Project-Id-Version: GameBuzz 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-27 13:44+0000\n"
+"PO-Revision-Date: 2025-06-27 13:45+0000\n"
+"Last-Translator: GameBuzz Team <info@gamebuzz.com>\n"
+"Language-Team: Spanish <es@gamebuzz.com>\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Spanish"
+msgstr "Español"
+
+msgid "English"
+msgstr "Inglés"
+
+msgid "GameBuzz - Discover Amazing Gaming Events"
+msgstr "GameBuzz - Descubre Increíbles Eventos de Juegos"
+
+msgid "Discover Amazing Gaming Events"
+msgstr "Descubre Increíbles Eventos de Juegos"
+
+msgid "Find the best gaming tournaments, conventions, and meetups in your area. Connect with fellow gamers and experience unforgettable moments."
+msgstr "Encuentra los mejores torneos, convenciones y reuniones de juegos en tu área. Conéctate con otros jugadores y vive momentos inolvidables."
+
+msgid "Search for events, games, or locations..."
+msgstr "Buscar eventos, juegos o ubicaciones..."
+
+msgid "Search"
+msgstr "Buscar"
+
+msgid "Featured"
+msgstr "Destacados"
+
+msgid "Popular"
+msgstr "Populares"
+
+msgid "About"
+msgstr "Acerca de"
+
+msgid "Browse by Category"
+msgstr "Explorar por Categoría"
+
+msgid "Find events that match your gaming interests and preferences"
+msgstr "Encuentra eventos que coincidan con tus intereses y preferencias de juego"
+
+msgid "Events"
+msgstr "Eventos"
+
+msgid "Don't miss these epic gaming experiences"
+msgstr "No te pierdas estas épicas experiencias de juego"
+
+msgid "View All Events"
+msgstr "Ver Todos los Eventos"
+
+msgid "Free"
+msgstr "Gratis"
+
+msgid "Learn More"
+msgstr "Más Información"
+
+msgid "Stay Updated"
+msgstr "Mantente Actualizado"
+
+msgid "Get notified about the latest gaming events, exclusive offers, and gaming community updates."
+msgstr "Recibe notificaciones sobre los últimos eventos de juegos, ofertas exclusivas y actualizaciones de la comunidad de juegos."
+
+msgid "Weekly event recommendations"
+msgstr "Recomendaciones semanales de eventos"
+
+msgid "Early access to tickets"
+msgstr "Acceso anticipado a entradas"
+
+msgid "Gaming community news"
+msgstr "Noticias de la comunidad de juegos"
+
+msgid "Exclusive discounts"
+msgstr "Descuentos exclusivos"
+
+msgid "Enter your email address"
+msgstr "Ingresa tu dirección de correo electrónico"
+
+msgid "Subscribe"
+msgstr "Suscribirse"
+
+msgid "Your ultimate destination for discovering and connecting with amazing gaming events worldwide."
+msgstr "Tu destino definitivo para descubrir y conectar con increíbles eventos de juegos en todo el mundo."
+
+msgid "Quick Links"
+msgstr "Enlaces Rápidos"
+
+msgid "Home"
+msgstr "Inicio"
+
+msgid "Help Center"
+msgstr "Centro de Ayuda"
+
+msgid "Esports"
+msgstr "Esports"
+
+msgid "Conventions"
+msgstr "Convenciones"
+
+msgid "Board Games"
+msgstr "Juegos de Mesa"
+
+msgid "Virtual Reality"
+msgstr "Realidad Virtual"
+
+msgid "Popular Cities"
+msgstr "Ciudades Populares"
+
+msgid "Los Angeles, CA"
+msgstr "Los Ángeles, CA"
+
+msgid "New York, NY"
+msgstr "Nueva York, NY"
+
+msgid "Austin, TX"
+msgstr "Austin, TX"
+
+msgid "Seattle, WA"
+msgstr "Seattle, WA"
+
+msgid "All rights reserved."
+msgstr "Todos los derechos reservados."
+
+msgid "Privacy Policy"
+msgstr "Política de Privacidad"
+
+msgid "Terms of Service"
+msgstr "Términos de Servicio"
+
+msgid "GameBuzz Admin"
+msgstr "Administración de GameBuzz"
+
+msgid "Welcome to the GameBuzz Admin!"
+msgstr "¡Bienvenido al Panel de Administración de GameBuzz!"
+
+msgid "GameBuzz Home"
+msgstr "Inicio de GameBuzz"
+
+msgid "Category"
+msgstr "Categoría"
+
+msgid "Categories"
+msgstr "Categorías"
+
+msgid "Event"
+msgstr "Evento"
+
+msgid "Newsletter Subscriber"
+msgstr "Suscriptor del Boletín"
+
+msgid "Newsletter Subscribers"
+msgstr "Suscriptores del Boletín"
+
+msgid "Draft"
+msgstr "Borrador"
+
+msgid "Published"
+msgstr "Publicado"
+
+msgid "Cancelled"
+msgstr "Cancelado"
+
+msgid "Ended"
+msgstr "Finalizado"
+
+msgid "Featured Events"
+msgstr "Eventos Destacados"
+
+msgid "Popular Events"
+msgstr "Eventos Populares"

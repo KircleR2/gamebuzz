@@ -1,20 +1,22 @@
 from django.db import models
 from django.utils.text import slugify
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(_('nombre'), max_length=100)
     slug = models.SlugField(max_length=100, unique=True, blank=True, null=True)
-    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories')
-    description = models.TextField(blank=True, null=True)
-    icon = models.CharField(max_length=50, blank=True, help_text="Bootstrap icon class e.g. 'bi-trophy'")
-    order = models.IntegerField(default=0, help_text="Order in which the category should be displayed")
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='subcategories', verbose_name=_('categoría padre'))
+    description = models.TextField(_('descripción'), blank=True, null=True)
+    icon = models.CharField(_('icono'), max_length=50, blank=True, help_text=_("Clase de icono Bootstrap, ej. 'bi-trophy'"))
+    order = models.IntegerField(_('orden'), default=0, help_text=_("Orden en el que se debe mostrar la categoría"))
+    is_active = models.BooleanField(_('activa'), default=True)
+    created_at = models.DateTimeField(_('fecha de creación'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('fecha de actualización'), auto_now=True)
 
     class Meta:
-        verbose_name_plural = "Categories"
+        verbose_name = _("Categoría")
+        verbose_name_plural = _("Categorías")
         ordering = ['order', 'name']
         unique_together = ['name', 'parent']
 
@@ -35,48 +37,54 @@ class Category(models.Model):
         return self.name
 
 class Event(models.Model):
-    STATUS_CHOICES = [('draft', 'Draft'), ('published', 'Published'), ('cancelled', 'Cancelled'), ('ended', 'Ended')]
-    title = models.CharField(max_length=200)
+    STATUS_CHOICES = [
+        ('draft', _('Borrador')), 
+        ('published', _('Publicado')), 
+        ('cancelled', _('Cancelado')), 
+        ('ended', _('Finalizado'))
+    ]
+    
+    title = models.CharField(_('título'), max_length=200)
     slug = models.SlugField(max_length=200, unique=True, blank=True)
-    description = models.TextField()
-    short_description = models.CharField(max_length=200, help_text="A brief description for listings", blank=True)
-    organizer_name = models.CharField(max_length=100)
-    organizer_description = models.TextField(blank=True)
-    organizer_logo = models.ImageField(upload_to='organizer_logos/', blank=True, null=True)
-    start_date = models.DateField()
-    start_time = models.TimeField()
-    end_date = models.DateField()
-    end_time = models.TimeField()
-    location_name = models.CharField(max_length=255)
-    address = models.CharField(max_length=255)
-    address_2 = models.CharField(max_length=255, blank=True)
-    city = models.CharField(max_length=100)
-    state_province = models.CharField(max_length=100)
-    country = models.CharField(max_length=100, default="United States")
-    venue_directions = models.TextField(blank=True, help_text="Directions to the venue, parking info, etc.")
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='events')
-    tags = models.CharField(max_length=500, blank=True, help_text="Comma-separated tags")
-    featured_image = models.ImageField(upload_to='events_images/', blank=True, null=True)
-    image_gallery = models.JSONField(default=list, blank=True, help_text="List of additional image URLs")
-    video_url = models.URLField(blank=True, help_text="Link to video (YouTube, Vimeo, etc.)")
-    max_capacity = models.PositiveIntegerField(null=True, blank=True)
-    registration_required = models.BooleanField(default=False)
-    registration_url = models.URLField(blank=True, help_text="External registration/ticketing URL")
-    is_free = models.BooleanField(default=True)
-    price_display = models.CharField(max_length=100, blank=True, help_text="e.g., 'Free', '-', 'Starting at .99'")
-    faq = models.JSONField(default=list, blank=True, help_text="List of FAQ items")
-    additional_info = models.TextField(blank=True, help_text="Any additional information about the event")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='draft')
-    is_featured = models.BooleanField(default=False, help_text="Featured events will be displayed on the homepage")
-    show_in_hero = models.BooleanField(default=False, help_text="Show this event in the homepage hero section")
-    hero_image = models.ImageField(upload_to='events_hero_images/', blank=True, null=True, help_text="Special image for the homepage hero section (optional)")
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    description = models.TextField(_('descripción'))
+    short_description = models.CharField(_('descripción corta'), max_length=200, help_text=_("Una breve descripción para los listados"), blank=True)
+    organizer_name = models.CharField(_('nombre del organizador'), max_length=100)
+    organizer_description = models.TextField(_('descripción del organizador'), blank=True)
+    organizer_logo = models.ImageField(_('logo del organizador'), upload_to='organizer_logos/', blank=True, null=True)
+    start_date = models.DateField(_('fecha de inicio'))
+    start_time = models.TimeField(_('hora de inicio'))
+    end_date = models.DateField(_('fecha de finalización'))
+    end_time = models.TimeField(_('hora de finalización'))
+    location_name = models.CharField(_('nombre del lugar'), max_length=255)
+    address = models.CharField(_('dirección'), max_length=255)
+    address_2 = models.CharField(_('dirección (línea 2)'), max_length=255, blank=True)
+    city = models.CharField(_('ciudad'), max_length=100)
+    state_province = models.CharField(_('estado/provincia'), max_length=100)
+    country = models.CharField(_('país'), max_length=100, default="España")
+    venue_directions = models.TextField(_('indicaciones del lugar'), blank=True, help_text=_("Indicaciones para llegar al lugar, información de estacionamiento, etc."))
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL, null=True, blank=True, related_name='events', verbose_name=_('categoría'))
+    tags = models.CharField(_('etiquetas'), max_length=500, blank=True, help_text=_("Etiquetas separadas por comas"))
+    featured_image = models.ImageField(_('imagen destacada'), upload_to='events_images/', blank=True, null=True)
+    image_gallery = models.JSONField(_('galería de imágenes'), default=list, blank=True, help_text=_("Lista de URLs de imágenes adicionales"))
+    video_url = models.URLField(_('URL del video'), blank=True, help_text=_("Enlace al video (YouTube, Vimeo, etc.)"))
+    max_capacity = models.PositiveIntegerField(_('capacidad máxima'), null=True, blank=True)
+    registration_required = models.BooleanField(_('requiere registro'), default=False)
+    registration_url = models.URLField(_('URL de registro'), blank=True, help_text=_("URL externa de registro/venta de entradas"))
+    is_free = models.BooleanField(_('es gratuito'), default=True)
+    price_display = models.CharField(_('mostrar precio'), max_length=100, blank=True, help_text=_("ej., 'Gratis', '-', 'Desde .99'"))
+    faq = models.JSONField(_('preguntas frecuentes'), default=list, blank=True, help_text=_("Lista de elementos de preguntas frecuentes"))
+    additional_info = models.TextField(_('información adicional'), blank=True, help_text=_("Cualquier información adicional sobre el evento"))
+    status = models.CharField(_('estado'), max_length=20, choices=STATUS_CHOICES, default='draft')
+    is_featured = models.BooleanField(_('destacado'), default=False, help_text=_("Los eventos destacados se mostrarán en la página principal"))
+    show_in_hero = models.BooleanField(_('mostrar en hero'), default=False, help_text=_("Mostrar este evento en la sección hero de la página principal"))
+    hero_image = models.ImageField(_('imagen hero'), upload_to='events_hero_images/', blank=True, null=True, help_text=_("Imagen especial para la sección hero de la página principal (opcional)"))
+    created_at = models.DateTimeField(_('fecha de creación'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('fecha de actualización'), auto_now=True)
 
     class Meta:
         ordering = ['-start_date', '-start_time']
-        verbose_name = "Event"
-        verbose_name_plural = "Events"
+        verbose_name = _("Evento")
+        verbose_name_plural = _("Eventos")
         indexes = [models.Index(fields=['start_date', 'status']), models.Index(fields=['is_featured'])]
 
     def __str__(self):
@@ -106,14 +114,14 @@ class Event(models.Model):
         return f"{self.start_date.strftime('%B %d')} {self.start_time.strftime('%I:%M %p')} - {self.end_date.strftime('%B %d')} {self.end_time.strftime('%I:%M %p')}"
 
 class NewsletterSubscriber(models.Model):
-    email = models.EmailField(unique=True)
-    subscribed_at = models.DateTimeField(auto_now_add=True)
-    is_active = models.BooleanField(default=True, help_text="Whether the subscriber is active")
-    unsubscribed_at = models.DateTimeField(null=True, blank=True)
+    email = models.EmailField(_('correo electrónico'), unique=True)
+    subscribed_at = models.DateTimeField(_('fecha de suscripción'), auto_now_add=True)
+    is_active = models.BooleanField(_('activo'), default=True, help_text=_("Si el suscriptor está activo"))
+    unsubscribed_at = models.DateTimeField(_('fecha de cancelación'), null=True, blank=True)
     
     class Meta:
-        verbose_name = "Newsletter Subscriber"
-        verbose_name_plural = "Newsletter Subscribers"
+        verbose_name = _("Suscriptor del Boletín")
+        verbose_name_plural = _("Suscriptores del Boletín")
         ordering = ['-subscribed_at']
     
     def __str__(self):

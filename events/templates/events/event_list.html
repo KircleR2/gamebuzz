@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block content %}
 <!-- Hero Section -->
@@ -29,13 +30,13 @@
 <!-- Static Hero Section (fallback) -->
 <section class="hero">
     <div class="hero-content">
-        <h1 class="hero-title">Discover Amazing Gaming Events</h1>
-        <p class="hero-subtitle">Find the best gaming tournaments, conventions, and meetups in your area. Connect with fellow gamers and experience unforgettable moments.</p>
+        <h1 class="hero-title">{% trans "Descubre Increíbles Eventos de Juegos" %}</h1>
+        <p class="hero-subtitle">{% trans "Encuentra los mejores torneos, convenciones y reuniones de juegos en tu área. Conéctate con otros jugadores y vive momentos inolvidables." %}</p>
         
         <form class="hero-search">
             <i class="bi bi-search hero-search-icon"></i>
-            <input type="text" class="hero-search-input" placeholder="Search for events, games, or locations...">
-            <button type="submit" class="hero-search-button">Search</button>
+            <input type="text" class="hero-search-input" placeholder="{% trans "Buscar eventos, juegos o ubicaciones..." %}">
+            <button type="submit" class="hero-search-button">{% trans "Buscar" %}</button>
         </form>
     </div>
 </section>
@@ -44,8 +45,8 @@
 <!-- Categories Section -->
 <section id="categories" class="section categories">
         <div class="container">
-        <h2 class="section-title">Browse by Category</h2>
-        <p class="section-subtitle">Find events that match your gaming interests and preferences</p>
+        <h2 class="section-title">{% trans "Explorar por Categoría" %}</h2>
+        <p class="section-subtitle">{% trans "Encuentra eventos que coincidan con tus intereses y preferencias de juego" %}</p>
         
         <div class="categories-grid">
             {% for category in categories %}
@@ -68,11 +69,11 @@
         <div class="section-header flex items-center justify-between mb-8">
             <div>
                 <h2 class="section-title section-title-split">
-                    <span class="section-title-main">Featured</span> <span class="section-title-accent">Events</span>
+                    <span class="section-title-main">{% trans "Eventos" %}</span> <span class="section-title-accent">{% trans "Destacados" %}</span>
                 </h2>
-                <p class="section-subtitle section-subtitle-gray">Don't miss these epic gaming experiences</p>
+                <p class="section-subtitle section-subtitle-gray">{% trans "No te pierdas estas épicas experiencias de juego" %}</p>
                 </div>
-            <a href="{% url 'featured_events' %}" class="btn btn-outline btn-outline-accent">View All Events</a>
+            <a href="{% url 'featured_events' %}" class="btn btn-outline btn-outline-accent">{% trans "Ver Todos los Eventos" %}</a>
                 </div>
         <div class="events-grid">
             {% for event in featured_events %}
@@ -109,12 +110,12 @@
                     <div class="flex items-center justify-between">
                         <span class="event-price">
                             {% if event.is_free %}
-                            Free
+                            {% trans "Gratis" %}
                             {% else %}
                             {{ event.price_display|default:'$' }}
                             {% endif %}
                         </span>
-                        <a href="{% url 'event_detail' event.slug %}" class="event-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <a href="{% url 'event_detail' event.slug %}" class="event-link">{% trans "Más Información" %} <i class="bi bi-arrow-right"></i></a>
                     </div>
                 </div>
                 </div>
@@ -129,11 +130,11 @@
         <div class="section-header flex items-center justify-between mb-8">
             <div>
                 <h2 class="section-title section-title-split">
-                    <span class="section-title-main">Popular</span> <span class="section-title-accent">Events</span>
+                    <span class="section-title-main">{% trans "Eventos" %}</span> <span class="section-title-accent">{% trans "Populares" %}</span>
                 </h2>
-                <p class="section-subtitle section-subtitle-gray">Don't miss these epic gaming experiences</p>
+                <p class="section-subtitle section-subtitle-gray">{% trans "No te pierdas estas épicas experiencias de juego" %}</p>
             </div>
-            <a href="{% url 'popular_events' %}" class="btn btn-outline btn-outline-accent">View All Events</a>
+            <a href="{% url 'popular_events' %}" class="btn btn-outline btn-outline-accent">{% trans "Ver Todos los Eventos" %}</a>
                     </div>
         <div class="events-grid">
             {% for event in popular_events %}
@@ -170,12 +171,12 @@
                     <div class="flex items-center justify-between">
                         <span class="event-price">
                             {% if event.is_free %}
-                            Free
+                            {% trans "Gratis" %}
                             {% else %}
                             {{ event.price_display|default:'$' }}
                             {% endif %}
                         </span>
-                        <a href="{% url 'event_detail' event.slug %}" class="event-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <a href="{% url 'event_detail' event.slug %}" class="event-link">{% trans "Más Información" %} <i class="bi bi-arrow-right"></i></a>
                     </div>
                 </div>
                 </div>
@@ -188,32 +189,32 @@
             <div class="container">
     <section class="newsletter">
         <div class="newsletter-content">
-            <h2 class="newsletter-title">Stay Updated</h2>
-            <p class="newsletter-description">Get notified about the latest gaming events, exclusive offers, and gaming community updates.</p>
+            <h2 class="newsletter-title">{% trans "Mantente Actualizado" %}</h2>
+            <p class="newsletter-description">{% trans "Recibe notificaciones sobre los últimos eventos de juegos, ofertas exclusivas y actualizaciones de la comunidad de juegos." %}</p>
             
             <div class="newsletter-features">
                 <div class="newsletter-feature">
                     <i class="bi bi-check-circle"></i>
-                    <span>Weekly event recommendations</span>
+                    <span>{% trans "Recomendaciones semanales de eventos" %}</span>
                 </div>
                 <div class="newsletter-feature">
                     <i class="bi bi-check-circle"></i>
-                    <span>Early access to tickets</span>
+                    <span>{% trans "Acceso anticipado a entradas" %}</span>
                 </div>
                 <div class="newsletter-feature">
                     <i class="bi bi-check-circle"></i>
-                    <span>Gaming community news</span>
+                    <span>{% trans "Noticias de la comunidad de juegos" %}</span>
                 </div>
                 <div class="newsletter-feature">
                     <i class="bi bi-check-circle"></i>
-                    <span>Exclusive discounts</span>
+                    <span>{% trans "Descuentos exclusivos" %}</span>
                 </div>
             </div>
         </div>
         
         <form class="newsletter-form">
-            <input type="email" class="newsletter-input" placeholder="Enter your email address" required>
-            <button type="submit" class="newsletter-button">Subscribe</button>
+            <input type="email" class="newsletter-input" placeholder="{% trans "Ingresa tu dirección de correo electrónico" %}" required>
+            <button type="submit" class="newsletter-button">{% trans "Suscribirse" %}</button>
         </form>
     </section>
                         </div>

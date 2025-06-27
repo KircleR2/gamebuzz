@@ -4,6 +4,7 @@ from django.contrib import admin
 from django.utils.html import format_html
 from .models import Category, Event, NewsletterSubscriber
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from .forms import IconField
 
 @admin.register(Category)
@@ -23,7 +24,7 @@ class CategoryAdmin(admin.ModelAdmin):
         if obj.icon:
             return format_html('<i class="{}" style="font-size: 1.2rem;"></i>', obj.icon)
         return "-"
-    display_icon.short_description = "Icon"
+    display_icon.short_description = _("Icono")
     
     def formfield_for_dbfield(self, db_field, request, **kwargs):
         """Override form field for icon to use our custom IconField"""
@@ -65,19 +66,19 @@ class EventAdmin(admin.ModelAdmin):
     date_hierarchy = 'start_date'
     
     fieldsets = (
-        ('Basic Information', {
+        (_('Información Básica'), {
             'fields': (
                 'title', 'slug', 'status', 'is_featured',
                 'short_description', 'description'
             )
         }),
-        ('Date and Time', {
+        (_('Fecha y Hora'), {
             'fields': (
                 ('start_date', 'start_time'),
                 ('end_date', 'end_time')
             )
         }),
-        ('Location', {
+        (_('Ubicación'), {
             'fields': (
                 'location_name',
                 'address',
@@ -87,20 +88,20 @@ class EventAdmin(admin.ModelAdmin):
                 'venue_directions'
             )
         }),
-        ('Organizer Information', {
+        (_('Información del Organizador'), {
             'fields': (
                 'organizer_name',
                 'organizer_description',
                 'organizer_logo'
             )
         }),
-        ('Categorization', {
+        (_('Categorización'), {
             'fields': (
                 'category',
                 'tags'
             )
         }),
-        ('Media', {
+        (_('Multimedia'), {
             'fields': (
                 'featured_image',
                 'hero_image',
@@ -108,7 +109,7 @@ class EventAdmin(admin.ModelAdmin):
                 'video_url'
             )
         }),
-        ('Registration & Capacity', {
+        (_('Registro y Capacidad'), {
             'fields': (
                 'registration_required',
                 'registration_url',
@@ -117,17 +118,17 @@ class EventAdmin(admin.ModelAdmin):
                 'price_display'
             )
         }),
-        ('Additional Information', {
+        (_('Información Adicional'), {
             'fields': (
                 'faq',
                 'additional_info'
             ),
             'classes': ('collapse',)
         }),
-        ('System Fields', {
+        (_('Campos del Sistema'), {
             'fields': ('created_at', 'updated_at'),
             'classes': ('collapse',),
-            'description': 'Automatically managed fields'
+            'description': _('Campos gestionados automáticamente')
         })
     )
     
@@ -135,11 +136,11 @@ class EventAdmin(admin.ModelAdmin):
 
     def event_date(self, obj):
         return obj.duration_display
-    event_date.short_description = 'Date & Time'
+    event_date.short_description = _('Fecha y Hora')
 
     def location_display(self, obj):
         return f"{obj.location_name}, {obj.city}"
-    location_display.short_description = 'Location'
+    location_display.short_description = _('Ubicación')
 
     def save_model(self, request, obj, form, change):
         if not change:
@@ -161,10 +162,10 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
     actions = ['activate_subscribers', 'deactivate_subscribers']
     
     fieldsets = (
-        ('Subscriber Information', {
+        (_('Información del Suscriptor'), {
             'fields': ('email', 'is_active')
         }),
-        ('Timestamps', {
+        (_('Marcas de Tiempo'), {
             'fields': ('subscribed_at', 'unsubscribed_at'),
             'classes': ('collapse',)
         })
@@ -174,18 +175,18 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
         """Calculate days since subscription"""
         if obj.subscribed_at:
             delta = timezone.now() - obj.subscribed_at
-            return f"{delta.days} days"
-        return "N/A"
-    days_subscribed.short_description = "Days Subscribed"
+            return f"{delta.days} " + _("días")
+        return _("N/A")
+    days_subscribed.short_description = _("Días Suscrito")
     
     def activate_subscribers(self, request, queryset):
         """Activate selected subscribers"""
         updated = queryset.update(is_active=True, unsubscribed_at=None)
-        self.message_user(request, f"{updated} subscribers activated successfully.")
-    activate_subscribers.short_description = "Activate selected subscribers"
+        self.message_user(request, _("{} suscriptores activados correctamente.").format(updated))
+    activate_subscribers.short_description = _("Activar suscriptores seleccionados")
     
     def deactivate_subscribers(self, request, queryset):
         """Deactivate selected subscribers"""
         updated = queryset.update(is_active=False, unsubscribed_at=timezone.now())
-        self.message_user(request, f"{updated} subscribers deactivated successfully.")
-    deactivate_subscribers.short_description = "Deactivate selected subscribers"
+        self.message_user(request, _("{} suscriptores desactivados correctamente.").format(updated))
+    deactivate_subscribers.short_description = _("Desactivar suscriptores seleccionados")

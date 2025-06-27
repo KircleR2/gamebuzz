@@ -1,10 +1,11 @@
 {% load static %}
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}GameBuzz - Discover Amazing Gaming Events{% endblock %}</title>
+    <title>{% block title %}{% trans "GameBuzz - Descubre Increíbles Eventos de Juegos" %}{% endblock %}</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,10 +29,10 @@
             
             <!-- Navigation -->
             <nav class="nav">
-                <a href="{% url 'featured_events' %}" class="nav-link">Featured</a>
-                <a href="{% url 'popular_events' %}" class="nav-link">Popular</a>
-                <a href="#categories" class="nav-link">Categories</a>
-                <a href="#about" class="nav-link">About</a>
+                <a href="{% url 'featured_events' %}" class="nav-link">{% trans "Destacados" %}</a>
+                <a href="{% url 'popular_events' %}" class="nav-link">{% trans "Populares" %}</a>
+                <a href="#categories" class="nav-link">{% trans "Categorías" %}</a>
+                <a href="#about" class="nav-link">{% trans "Acerca de" %}</a>
             </nav>
             
             <!-- Header Actions -->
@@ -49,10 +50,10 @@
     <!-- Mobile Menu -->
     <div class="mobile-menu absolute top-full left-0 w-full bg-white border-b border-gray-200 hidden">
         <div class="container py-4">
-            <a href="{% url 'featured_events' %}" class="block py-2 text-gray-600">Featured</a>
-            <a href="{% url 'popular_events' %}" class="block py-2 text-gray-600">Popular</a>
-            <a href="#categories" class="block py-2 text-gray-600">Categories</a>
-            <a href="#about" class="block py-2 text-gray-600">About</a>
+            <a href="{% url 'featured_events' %}" class="block py-2 text-gray-600">{% trans "Destacados" %}</a>
+            <a href="{% url 'popular_events' %}" class="block py-2 text-gray-600">{% trans "Populares" %}</a>
+            <a href="#categories" class="block py-2 text-gray-600">{% trans "Categorías" %}</a>
+            <a href="#about" class="block py-2 text-gray-600">{% trans "Acerca de" %}</a>
         </div>
     </div>
 
@@ -67,7 +68,7 @@
             <div class="footer-grid">
                 <div class="footer-section">
                     <h3>GameBuzz</h3>
-                    <p class="text-gray-600 mb-4">Your ultimate destination for discovering and connecting with amazing gaming events worldwide.</p>
+                    <p class="text-gray-600 mb-4">{% trans "Tu destino definitivo para descubrir y conectar con increíbles eventos de juegos en todo el mundo." %}</p>
                     <div class="flex gap-4">
                         <a href="#" class="text-gray-400 hover:text-primary-blue"><i class="bi bi-facebook"></i></a>
                         <a href="#" class="text-gray-400 hover:text-primary-blue"><i class="bi bi-twitter"></i></a>
@@ -77,46 +78,46 @@
                 </div>
                 
                 <div class="footer-section">
-                    <h3>Quick Links</h3>
+                    <h3>{% trans "Enlaces Rápidos" %}</h3>
                     <ul class="footer-links">
-                        <li><a href="{% url 'event_list' %}">Home</a></li>
-                        <li><a href="{% url 'featured_events' %}">Featured Events</a></li>
-                        <li><a href="{% url 'popular_events' %}">Popular Events</a></li>
-                        <li><a href="#">Help Center</a></li>
+                        <li><a href="{% url 'event_list' %}">{% trans "Inicio" %}</a></li>
+                        <li><a href="{% url 'featured_events' %}">{% trans "Eventos Destacados" %}</a></li>
+                        <li><a href="{% url 'popular_events' %}">{% trans "Eventos Populares" %}</a></li>
+                        <li><a href="#">{% trans "Centro de Ayuda" %}</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-section">
-                    <h3>Categories</h3>
+                    <h3>{% trans "Categorías" %}</h3>
                     <ul class="footer-links">
                         {% for category in categories|slice:":4" %}
                         <li><a href="{% url 'category_events' category.slug %}">{{ category.name }}</a></li>
                         {% empty %}
-                        <li><a href="#">Esports</a></li>
-                        <li><a href="#">Conventions</a></li>
-                        <li><a href="#">Board Games</a></li>
-                        <li><a href="#">Virtual Reality</a></li>
+                        <li><a href="#">{% trans "Esports" %}</a></li>
+                        <li><a href="#">{% trans "Convenciones" %}</a></li>
+                        <li><a href="#">{% trans "Juegos de Mesa" %}</a></li>
+                        <li><a href="#">{% trans "Realidad Virtual" %}</a></li>
                         {% endfor %}
                     </ul>
                 </div>
                 
                 <div class="footer-section">
-                    <h3>Popular Cities</h3>
+                    <h3>{% trans "Ciudades Populares" %}</h3>
                     <ul class="footer-links">
                         {% for city in popular_cities|slice:":4" %}
                         <li><a href="#">{{ city.city }}, {{ city.state_province }}</a></li>
                         {% empty %}
-                        <li><a href="#">Los Angeles, CA</a></li>
-                        <li><a href="#">New York, NY</a></li>
-                        <li><a href="#">Austin, TX</a></li>
-                        <li><a href="#">Seattle, WA</a></li>
+                        <li><a href="#">{% trans "Los Ángeles, CA" %}</a></li>
+                        <li><a href="#">{% trans "Nueva York, NY" %}</a></li>
+                        <li><a href="#">{% trans "Austin, TX" %}</a></li>
+                        <li><a href="#">{% trans "Seattle, WA" %}</a></li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2024 GameBuzz. All rights reserved. | <a href="#" class="text-gray-600 hover:text-primary-blue">Privacy Policy</a> | <a href="#" class="text-gray-600 hover:text-primary-blue">Terms of Service</a></p>
+                <p>&copy; 2024 GameBuzz. {% trans "Todos los derechos reservados." %} | <a href="#" class="text-gray-600 hover:text-primary-blue">{% trans "Política de Privacidad" %}</a> | <a href="#" class="text-gray-600 hover:text-primary-blue">{% trans "Términos de Servicio" %}</a></p>
             </div>
         </div>
     </footer>

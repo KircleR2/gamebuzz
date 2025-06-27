@@ -64,6 +64,7 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",  # Add whitenoise for static files
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",  # Add locale middleware
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -134,14 +135,27 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "es"
 
 TIME_ZONE = "UTC"
 
 USE_I18N = True
 
+USE_L10N = True
+
 USE_TZ = True
 
+# Available languages
+from django.utils.translation import gettext_lazy as _
+LANGUAGES = [
+    ('es', _('Spanish')),
+    ('en', _('English')),
+]
+
+# Location of translation files
+LOCALE_PATHS = [
+    BASE_DIR / 'locale',
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
@@ -174,7 +188,7 @@ JAZZMIN_SETTINGS = {
     "site_header": "GameBuzz Admin",
     "site_brand": "GameBuzz",
     "site_logo": None,  # Remove site_logo to avoid issues with missing files
-    "welcome_sign": "Welcome to the GameBuzz Admin!",
+    "welcome_sign": "¡Bienvenido al Panel de Administración de GameBuzz!",
     "copyright": "GameBuzz 2025",
     "search_model": ["events.Event", "events.Category"],
     "show_sidebar": True,
@@ -186,7 +200,7 @@ JAZZMIN_SETTINGS = {
     "order_with_respect_to": ["events", "auth"],
     "custom_links": {
         "events": [{
-            "name": "GameBuzz Home",
+            "name": "Inicio de GameBuzz",
             "url": "/",
             "icon": "fas fa-home",
             "permissions": ["events.view_event"]
