@@ -23,8 +23,8 @@
         },
         "accent": {
           "orange": {
-            "hex": "#F97316",
-            "rgb": "249, 115, 22",
+            "hex": "#DC2525",
+            "rgb": "220, 37, 37",
             "usage": "Call-to-action buttons, interactive elements"
           }
         },
@@ -188,7 +188,7 @@
             },
             "button": {
               "position": "absolute right-1 top-1/2",
-              "background": "#F97316",
+              "background": "#DC2525",
               "color": "white",
               "padding": "0.5rem 1rem",
               "borderRadius": "0.375rem"
@@ -285,7 +285,7 @@
               "fontWeight": "500"
             },
             "link": {
-              "color": "#F97316",
+              "color": "#DC2525",
               "fontSize": "0.875rem",
               "fontWeight": "500",
               "hover": "opacity-80"
@@ -329,7 +329,7 @@
               "placeholderColor": "rgba(255, 255, 255, 0.6)"
             },
             "button": {
-              "background": "#F97316",
+              "background": "#DC2525",
               "color": "white",
               "width": "100%",
               "hover": "opacity-90"
@@ -339,7 +339,7 @@
   
         "buttons": {
           "primary": {
-            "background": "#F97316",
+            "background": "#DC2525",
             "color": "white",
             "padding": "0.5rem 1rem",
             "borderRadius": "0.375rem",

@@ -1,0 +1,54 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+    {{ block.super }}
+    {% if extra_js %}
+        {{ extra_js|safe }}
+    {% endif %}
+    <script type="text/javascript">
+        django.jQuery(document).ready(function($) {
+            // Force icon preview to update on page load
+            function updateIconPreview() {
+                $('.icon-picker-select').each(function() {
+                    const select = $(this);
+                    const wrapper = select.closest('.icon-picker-wrapper');
+                    if (!wrapper.length) {
+                        // Try finding it as a sibling
+                        const container = select.siblings('.icon-picker-container');
+                        if (container.length) {
+                            const previewIcon = container.find('.icon-preview i');
+                            const selectedIcon = select.val();
+                            if (selectedIcon) {
+                                previewIcon.attr('class', selectedIcon);
+                            }
+                        }
+                    } else {
+                        const previewIcon = wrapper.find('.icon-preview i');
+                        const selectedIcon = select.val();
+                        if (selectedIcon) {
+                            previewIcon.attr('class', selectedIcon);
+                        }
+                    }
+                });
+            }
+            
+            // Update preview when selection changes
+            $('.icon-picker-select').on('change', function() {
+                updateIconPreview();
+            });
+            
+            // Initial update
+            updateIconPreview();
+            
+            // Also update when the DOM changes (for dynamically loaded content)
+            const observer = new MutationObserver(function(mutations) {
+                updateIconPreview();
+            });
+            
+            observer.observe(document.body, { 
+                childList: true, 
+                subtree: true 
+            });
+        });
+    </script>
+{% endblock %} 

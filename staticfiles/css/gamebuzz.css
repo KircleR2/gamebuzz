@@ -5,8 +5,8 @@
   --primary-blue-rgb: 37, 99, 235;
   --secondary-mint: #10B981;
   --secondary-mint-rgb: 16, 185, 129;
-  --accent-orange: #F97316;
-  --accent-orange-rgb: 249, 115, 22;
+  --accent-orange: #DC2525;
+  --accent-orange-rgb: 220, 37, 37;
   
   /* Neutral Colors */
   --white: #FFFFFF;
@@ -133,7 +133,7 @@ body {
 }
 
 .nav-link {
-  font-size: var(--text-sm);
+  font-size: var(--text-lg);
   font-weight: var(--font-medium);
   color: var(--gray-600);
   text-decoration: none;
@@ -203,11 +203,11 @@ body {
 
 .mobile-menu a {
   display: block;
-  padding: var(--spacing-2) 0;
+  padding: 0.5rem 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-medium);
   color: var(--gray-600);
   text-decoration: none;
-  font-weight: var(--font-medium);
-  transition: color 0.2s ease;
 }
 
 .mobile-menu a:hover {
@@ -762,9 +762,6 @@ body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-6);
-  justify-content: center;
-  margin: 0 auto;
-  max-width: 1000px;
 }
 
 .category-card {
@@ -785,7 +782,6 @@ body {
 .category-card a {
   text-decoration: none;
   display: block;
-  color: inherit;
 }
 
 .category-icon {
@@ -1109,7 +1105,6 @@ body {
   
   .categories-grid {
     grid-template-columns: repeat(4, 1fr);
-    max-width: 800px;
   }
   
   .events-grid {
@@ -1181,8 +1176,7 @@ body {
 
 @media (min-width: 1024px) {
   .categories-grid {
-    grid-template-columns: repeat(6, 1fr);
-    max-width: 1000px;
+    grid-template-columns: repeat(8, 1fr);
   }
   
   .events-grid {
