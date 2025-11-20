@@ -187,7 +187,9 @@ STATICFILES_DIRS = [
 ]
 
 # Use whitenoise for static files in production
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+# Using CompressedStaticFilesStorage instead of CompressedManifestStaticFilesStorage
+# to avoid issues with missing manifest files in production
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
@@ -201,29 +203,33 @@ os.makedirs(MEDIA_ROOT, exist_ok=True)
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-JAZZMIN_SETTINGS = {
-    "site_title": "GameBuzz Admin",
-    "site_header": "GameBuzz Admin",
-    "site_brand": "GameBuzz",
-    "site_logo": None,  # Remove site_logo to avoid issues with missing files
-    "welcome_sign": "¡Bienvenido al Panel de Administración de GameBuzz!",
-    "copyright": "GameBuzz 2025",
-    "search_model": ["events.Event", "events.Category"],
-    "show_sidebar": True,
-    "navigation_expanded": True,
-    "icons": {
-        "events.Event": "fas fa-calendar-alt",
-        "events.Category": "fas fa-tags",
+# Unfold Admin Configuration
+UNFOLD = {
+    "SITE_TITLE": "GameBuzz Admin",
+    "SITE_HEADER": "GameBuzz",
+    "SITE_URL": "/",
+    "SITE_ICON": None,
+    "SITE_LOGO": None,
+    "SITE_SYMBOL": "speed",
+    "SHOW_HISTORY": True,
+    "SHOW_VIEW_ON_SITE": True,
+    "ENVIRONMENT": None,
+    "DASHBOARD_CALLBACK": None,
+    "THEME": "dark",
+    "COLORS": {
+        "primary": {
+            "50": "250 245 255",
+            "100": "243 232 255",
+            "200": "233 213 255",
+            "300": "216 180 254",
+            "400": "192 132 252",
+            "500": "168 85 247",
+            "600": "147 51 234",
+            "700": "126 34 206",
+            "800": "107 33 168",
+            "900": "88 28 135",
+        },
     },
-    "order_with_respect_to": ["events", "auth"],
-    "custom_links": {
-        "events": [{
-            "name": "Inicio de GameBuzz",
-            "url": "/",
-            "icon": "fas fa-home",
-            "permissions": ["events.view_event"]
-        }]
-    }
 }
 
 # Security settings for production
