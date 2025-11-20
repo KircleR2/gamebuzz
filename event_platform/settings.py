@@ -33,7 +33,9 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(","
 # Application definition
 
 INSTALLED_APPS = [
-    "jazzmin",  # Jazzmin admin theme
+    "unfold",  # Unfold admin theme - must be before django.contrib.admin
+    "unfold.contrib.filters",
+    "unfold.contrib.forms",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
