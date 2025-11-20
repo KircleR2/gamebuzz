@@ -96,21 +96,37 @@ WSGI_APPLICATION = "event_platform.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    }
-}
-
-# Use DATABASE_URL environment variable if available (for Render)
+# Try to get DATABASE_URL from environment (for Heroku, Render, DigitalOcean, etc.)
 DATABASE_URL = os.environ.get("DATABASE_URL")
-if DATABASE_URL:
-    DATABASES["default"] = dj_database_url.config(
-        default=DATABASE_URL,
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+
+# Validate DATABASE_URL is properly formatted before using it
+# This prevents crashes from empty or malformed DATABASE_URL values
+if DATABASE_URL and DATABASE_URL.strip() and '://' in DATABASE_URL and not DATABASE_URL.startswith('://'):
+    try:
+        DATABASES = {
+            'default': dj_database_url.config(
+                default=DATABASE_URL,
+                conn_max_age=600,
+                conn_health_checks=True,
+            )
+        }
+    except Exception as e:
+        print(f"⚠️  Warning: Could not parse DATABASE_URL: {e}")
+        print(f"   Falling back to default SQLite database")
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.sqlite3",
+                "NAME": BASE_DIR / "db.sqlite3",
+            }
+        }
+else:
+    # Use SQLite for local development
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation
