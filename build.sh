@@ -3,6 +3,9 @@
 set -o errexit
 set -x
 
+# Set Django settings module
+export DJANGO_SETTINGS_MODULE=event_platform.settings
+
 # Install dependencies
 pip install -r requirements.txt
 

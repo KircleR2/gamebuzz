@@ -123,12 +123,12 @@ if DATABASE_URL and DATABASE_URL.strip() and '://' in DATABASE_URL and not DATAB
         }
 else:
     # Use SQLite for local development
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
-        }
+DATABASES = {
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
+}
 
 
 # Password validation
@@ -190,6 +190,11 @@ STATICFILES_DIRS = [
 # Using CompressedStaticFilesStorage instead of CompressedManifestStaticFilesStorage
 # to avoid issues with missing manifest files in production
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+
+# WhiteNoise configuration
+WHITENOISE_USE_FINDERS = True  # Allow WhiteNoise to find files in STATICFILES_DIRS during development
+WHITENOISE_AUTOREFRESH = True  # Automatically refresh when files change (development only)
+WHITENOISE_ROOT = BASE_DIR / "staticfiles"  # Root directory for static files
 
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
