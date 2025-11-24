@@ -3,6 +3,7 @@
 set -o errexit
 set -x
 
+# Force rebuild - timestamp: 2025-11-21-02:30:00
 # Set Django settings module
 export DJANGO_SETTINGS_MODULE=event_platform.settings
 
