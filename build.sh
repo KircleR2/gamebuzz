@@ -20,18 +20,23 @@ chmod -R 755 media
 # Ensure staticfiles directory exists
 mkdir -p staticfiles
 echo "Collecting static files..."
-python manage.py collectstatic --no-input --clear
+echo "STATIC_ROOT will be: $(python -c 'import os; from pathlib import Path; BASE_DIR = Path(__file__).resolve().parent.parent; print(BASE_DIR / "staticfiles")')"
+python manage.py collectstatic --no-input --clear --verbosity=2
 
 # Verify static files were collected
+echo "Verifying static files collection..."
 if [ -f "staticfiles/css/gamebuzz.css" ]; then
     echo "✅ gamebuzz.css successfully collected to staticfiles/css/gamebuzz.css"
+    ls -lh staticfiles/css/gamebuzz.css
 else
     echo "❌ ERROR: gamebuzz.css NOT found in staticfiles/css/"
-    # List static directory to debug
+    echo "Current directory: $(pwd)"
     echo "Contents of static/:"
-    ls -R static/
+    ls -R static/ || echo "static/ directory not found"
     echo "Contents of staticfiles/:"
-    ls -R staticfiles/
+    ls -R staticfiles/ || echo "staticfiles/ directory not found"
+    echo "Checking STATIC_ROOT..."
+    python -c "import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'event_platform.settings'); import django; django.setup(); from django.conf import settings; print(f'STATIC_ROOT: {settings.STATIC_ROOT}'); import os; print(f'Exists: {os.path.exists(settings.STATIC_ROOT)}')"
     exit 1
 fi
 
