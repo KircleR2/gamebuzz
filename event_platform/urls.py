@@ -27,14 +27,13 @@ urlpatterns = [
     path("api/", include("events.api.urls")),
 ]
 
-# Serve static and media files in development
-if settings.DEBUG:
-    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-else:
-    # Serve media files in production
-    urlpatterns += [
-        path('media/<path:path>', serve, {
-            'document_root': settings.MEDIA_ROOT,
-        }),
-    ]
+# Serve static and media files
+# Always serve static files via Django (WhiteNoise should handle this, but as fallback)
+urlpatterns += [
+    path('static/<path:path>', serve, {
+        'document_root': settings.STATIC_ROOT,
+    }),
+    path('media/<path:path>', serve, {
+        'document_root': settings.MEDIA_ROOT,
+    }),
+]
