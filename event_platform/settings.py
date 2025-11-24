@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-x4t0-q!u=w+mp3#mg7d3q(@w5^5eb(dt(r9_#f1-+!_sg&7i7^")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "True") == "True"
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -190,11 +190,6 @@ STATICFILES_DIRS = [
 # Using CompressedStaticFilesStorage instead of CompressedManifestStaticFilesStorage
 # to avoid issues with missing manifest files in production
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
-
-# WhiteNoise configuration
-WHITENOISE_USE_FINDERS = True  # Allow WhiteNoise to find files in STATICFILES_DIRS during development
-WHITENOISE_AUTOREFRESH = True  # Automatically refresh when files change (development only)
-WHITENOISE_ROOT = BASE_DIR / "staticfiles"  # Root directory for static files
 
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
