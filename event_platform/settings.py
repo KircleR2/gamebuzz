@@ -194,6 +194,15 @@ STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 # WhiteNoise configuration - ensure it works in production
 # WhiteNoise will automatically serve files from STATIC_ROOT
 # Make sure collectstatic runs during build/deployment
+# For DigitalOcean App Platform, ensure static files are collected to STATIC_ROOT
+if not DEBUG:
+    # Ensure WhiteNoise can find static files in production
+    import os
+    staticfiles_path = str(STATIC_ROOT)
+    if os.path.exists(staticfiles_path):
+        print(f"✅ WhiteNoise: STATIC_ROOT exists at {staticfiles_path}")
+    else:
+        print(f"⚠️  WhiteNoise: STATIC_ROOT does not exist at {staticfiles_path}")
 
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
