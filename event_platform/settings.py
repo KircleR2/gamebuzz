@@ -191,6 +191,10 @@ STATICFILES_DIRS = [
 # to avoid issues with missing manifest files in production
 STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
+# WhiteNoise configuration - ensure it works in production
+# WhiteNoise will automatically serve files from STATIC_ROOT
+# Make sure collectstatic runs during build/deployment
+
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
