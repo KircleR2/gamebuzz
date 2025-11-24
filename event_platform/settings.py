@@ -179,17 +179,16 @@ LOCALE_PATHS = [
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = BASE_DIR / "staticfiles"
+STATIC_ROOT = str(BASE_DIR / "staticfiles")  # Convert to string for WhiteNoise compatibility
 
 # Additional static files directories
 STATICFILES_DIRS = [
-    BASE_DIR / "static",
+    str(BASE_DIR / "static"),  # Convert to string
 ]
 
 # Use whitenoise for static files in production
-# Using CompressedStaticFilesStorage instead of CompressedManifestStaticFilesStorage
-# to avoid issues with missing manifest files in production
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+# Using standard storage for maximum compatibility
+STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
 
 # WhiteNoise configuration - ensure it works in production
 # WhiteNoise will automatically serve files from STATIC_ROOT
