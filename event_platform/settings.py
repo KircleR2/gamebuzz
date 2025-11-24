@@ -123,12 +123,12 @@ if DATABASE_URL and DATABASE_URL.strip() and '://' in DATABASE_URL and not DATAB
         }
 else:
     # Use SQLite for local development
-DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
     }
-}
 
 
 # Password validation
