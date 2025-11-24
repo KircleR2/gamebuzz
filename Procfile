@@ -1,1 +1,1 @@
-web: gunicorn event_platform.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 
+web: python manage.py collectstatic --no-input && gunicorn event_platform.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 
