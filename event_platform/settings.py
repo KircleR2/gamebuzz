@@ -179,29 +179,16 @@ LOCALE_PATHS = [
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = "/static/"
-STATIC_ROOT = str(BASE_DIR / "staticfiles")  # Convert to string for WhiteNoise compatibility
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 # Additional static files directories
 STATICFILES_DIRS = [
-    str(BASE_DIR / "static"),  # Convert to string
+    os.path.join(BASE_DIR, "static"),
 ]
 
-# Use whitenoise for static files in production
-# Using standard storage for maximum compatibility
-STATICFILES_STORAGE = "whitenoise.storage.StaticFilesStorage"
-
-# WhiteNoise configuration - ensure it works in production
-# WhiteNoise will automatically serve files from STATIC_ROOT
-# Make sure collectstatic runs during build/deployment
-# For DigitalOcean App Platform, ensure static files are collected to STATIC_ROOT
-if not DEBUG:
-    # Ensure WhiteNoise can find static files in production
-    import os
-    staticfiles_path = str(STATIC_ROOT)
-    if os.path.exists(staticfiles_path):
-        print(f"✅ WhiteNoise: STATIC_ROOT exists at {staticfiles_path}")
-    else:
-        print(f"⚠️  WhiteNoise: STATIC_ROOT does not exist at {staticfiles_path}")
+# Use WhiteNoise's CompressedStaticFilesStorage for production
+# This compresses files but doesn't add hashes to filenames
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
