@@ -23,8 +23,8 @@ import os
 
 # Static and media files FIRST - before any app URLs
 urlpatterns = [
-    # Serve static files from STATIC_ROOT
-    re_path(r'^static/(?P<path>.*)$', serve, {
+    # Serve static files from STATIC_ROOT using /assets/ to avoid DigitalOcean ingress conflict
+    re_path(r'^assets/(?P<path>.*)$', serve, {
         'document_root': settings.STATIC_ROOT,
     }),
     # Serve media files from MEDIA_ROOT  
