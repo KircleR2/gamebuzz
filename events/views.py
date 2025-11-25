@@ -1,13 +1,15 @@
 from django.views.generic import TemplateView, DetailView, ListView
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
 import json
+import os
 from .models import Event, Category, NewsletterSubscriber
 from django.utils import timezone
 from django.db import models
 from django.shortcuts import get_object_or_404
+from django.conf import settings
 
 class EventListView(TemplateView):
     template_name = "events/event_list.html"
@@ -185,3 +187,46 @@ class NewsletterSubscriptionView(View):
                 'success': False,
                 'message': 'Something went wrong. Please try again.'
             }, status=500)
+
+
+def debug_static_files(request):
+    """Debug endpoint to check static file configuration"""
+    import os
+    from django.conf import settings
+    
+    result = {
+        'BASE_DIR': str(settings.BASE_DIR),
+        'STATIC_URL': settings.STATIC_URL,
+        'STATIC_ROOT': str(settings.STATIC_ROOT),
+        'STATICFILES_DIRS': [str(d) for d in settings.STATICFILES_DIRS],
+        'DEBUG': settings.DEBUG,
+    }
+    
+    # Check if STATIC_ROOT exists
+    static_root = str(settings.STATIC_ROOT)
+    result['STATIC_ROOT_exists'] = os.path.exists(static_root)
+    
+    if result['STATIC_ROOT_exists']:
+        # List contents of STATIC_ROOT
+        try:
+            contents = []
+            for root, dirs, files in os.walk(static_root):
+                rel_root = os.path.relpath(root, static_root)
+                for f in files[:10]:  # Limit to 10 files per directory
+                    path = os.path.join(rel_root, f) if rel_root != '.' else f
+                    contents.append(path)
+                if len(contents) > 50:  # Limit total files
+                    break
+            result['STATIC_ROOT_contents'] = contents[:50]
+        except Exception as e:
+            result['STATIC_ROOT_contents_error'] = str(e)
+    
+    # Check if specific CSS file exists
+    css_path = os.path.join(static_root, 'css', 'gamebuzz.css')
+    result['gamebuzz_css_exists'] = os.path.exists(css_path)
+    result['gamebuzz_css_path'] = css_path
+    
+    # Check working directory
+    result['cwd'] = os.getcwd()
+    
+    return JsonResponse(result, json_dumps_params={'indent': 2})
