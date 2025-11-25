@@ -21,23 +21,18 @@ from django.conf.urls.static import static
 from django.views.static import serve
 import os
 
+# Static and media files FIRST - before any app URLs
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("", include("events.urls")),
-    path("api/", include("events.api.urls")),
-]
-
-# Always serve static files via Django's serve view as a fallback
-# This ensures static files work even if WhiteNoise fails
-urlpatterns += [
+    # Serve static files from STATIC_ROOT
     re_path(r'^static/(?P<path>.*)$', serve, {
         'document_root': settings.STATIC_ROOT,
     }),
-]
-
-# Always serve media files
-urlpatterns += [
+    # Serve media files from MEDIA_ROOT  
     re_path(r'^media/(?P<path>.*)$', serve, {
         'document_root': settings.MEDIA_ROOT,
     }),
+    # Admin and app URLs
+    path("admin/", admin.site.urls),
+    path("api/", include("events.api.urls")),
+    path("", include("events.urls")),
 ]
