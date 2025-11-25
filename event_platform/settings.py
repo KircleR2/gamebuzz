@@ -181,14 +181,19 @@ LOCALE_PATHS = [
 STATIC_URL = "/static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
-# Additional static files directories
+# Additional static files directories  
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
 
-# Use WhiteNoise's CompressedStaticFilesStorage for production
-# This compresses files but doesn't add hashes to filenames
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+# Use standard Django storage - WhiteNoise middleware will handle serving
+# Don't use WhiteNoise's storage class as it can cause issues
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+
+# WhiteNoise configuration
+# In production, WhiteNoise serves files from STATIC_ROOT
+# It will also serve files from STATICFILES_DIRS in development
+WHITENOISE_USE_FINDERS = DEBUG  # Only use finders in development
 
 # Media files (User uploaded files)
 MEDIA_URL = "/media/"
