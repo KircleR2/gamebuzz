@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import EventListView, EventDetailView, CategoryEventsView, FeaturedEventsView, PopularEventsView, debug_static_files, serve_css, test_serve
+from .views import EventListView, EventDetailView, CategoryEventsView, FeaturedEventsView, PopularEventsView
 
 urlpatterns = [
     path('', EventListView.as_view(), name='event_list'),
@@ -7,7 +7,4 @@ urlpatterns = [
     path('category/<slug:slug>/', CategoryEventsView.as_view(), name='category_events'),
     path('featured/', FeaturedEventsView.as_view(), name='featured_events'),
     path('popular/', PopularEventsView.as_view(), name='popular_events'),
-    path('debug/static/', debug_static_files, name='debug_static_files'),
-    path('debug/css/', serve_css, name='serve_css'),
-    path('debug/serve/', test_serve, name='test_serve'),
 ] 

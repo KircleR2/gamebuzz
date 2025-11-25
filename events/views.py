@@ -1,15 +1,13 @@
 from django.views.generic import TemplateView, DetailView, ListView
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
 import json
-import os
 from .models import Event, Category, NewsletterSubscriber
 from django.utils import timezone
 from django.db import models
 from django.shortcuts import get_object_or_404
-from django.conf import settings
 
 class EventListView(TemplateView):
     template_name = "events/event_list.html"
@@ -189,109 +187,3 @@ class NewsletterSubscriptionView(View):
             }, status=500)
 
 
-def debug_static_files(request):
-    """Debug endpoint to check static file configuration"""
-    import os
-    from django.conf import settings
-    
-    result = {
-        'BASE_DIR': str(settings.BASE_DIR),
-        'STATIC_URL': settings.STATIC_URL,
-        'STATIC_ROOT': str(settings.STATIC_ROOT),
-        'STATICFILES_DIRS': [str(d) for d in settings.STATICFILES_DIRS],
-        'DEBUG': settings.DEBUG,
-    }
-    
-    # Check if STATIC_ROOT exists
-    static_root = str(settings.STATIC_ROOT)
-    result['STATIC_ROOT_exists'] = os.path.exists(static_root)
-    result['STATIC_ROOT_is_dir'] = os.path.isdir(static_root)
-    
-    if result['STATIC_ROOT_exists']:
-        # List contents of STATIC_ROOT
-        try:
-            contents = []
-            for root, dirs, files in os.walk(static_root):
-                rel_root = os.path.relpath(root, static_root)
-                for f in files[:10]:  # Limit to 10 files per directory
-                    path = os.path.join(rel_root, f) if rel_root != '.' else f
-                    contents.append(path)
-                if len(contents) > 50:  # Limit total files
-                    break
-            result['STATIC_ROOT_contents'] = contents[:50]
-        except Exception as e:
-            result['STATIC_ROOT_contents_error'] = str(e)
-    
-    # Check if specific CSS file exists
-    css_path = os.path.join(static_root, 'css', 'gamebuzz.css')
-    result['gamebuzz_css_exists'] = os.path.exists(css_path)
-    result['gamebuzz_css_path'] = css_path
-    result['gamebuzz_css_is_file'] = os.path.isfile(css_path)
-    
-    # Try to read first 100 chars of the CSS file
-    if result['gamebuzz_css_exists']:
-        try:
-            with open(css_path, 'r') as f:
-                result['gamebuzz_css_content_preview'] = f.read(100)
-        except Exception as e:
-            result['gamebuzz_css_read_error'] = str(e)
-    
-    # Check working directory
-    result['cwd'] = os.getcwd()
-    
-    # Check URL patterns
-    from django.urls import get_resolver
-    resolver = get_resolver()
-    result['url_patterns'] = [str(p.pattern) for p in resolver.url_patterns[:10]]
-    
-    return JsonResponse(result, json_dumps_params={'indent': 2})
-
-
-def serve_css(request):
-    """Directly serve the gamebuzz.css file"""
-    import os
-    from django.conf import settings
-    
-    css_path = os.path.join(str(settings.STATIC_ROOT), 'css', 'gamebuzz.css')
-    
-    try:
-        with open(css_path, 'r') as f:
-            content = f.read()
-        return HttpResponse(content, content_type='text/css')
-    except FileNotFoundError:
-        return HttpResponse(f"File not found: {css_path}", status=404)
-    except Exception as e:
-        return HttpResponse(f"Error: {str(e)}", status=500)
-
-
-def test_serve(request, path="css/gamebuzz.css"):
-    """Test the serve view logic"""
-    import os
-    from django.conf import settings
-    from django.views.static import serve
-    from django.http import Http404
-    
-    result = {
-        'path': path,
-        'document_root': str(settings.STATIC_ROOT),
-        'full_path': os.path.join(str(settings.STATIC_ROOT), path),
-    }
-    
-    # Check if file exists
-    full_path = os.path.join(str(settings.STATIC_ROOT), path)
-    result['file_exists'] = os.path.exists(full_path)
-    result['is_file'] = os.path.isfile(full_path)
-    
-    # Try to call serve directly
-    try:
-        from django.http import HttpRequest
-        # This will raise Http404 if file not found
-        response = serve(request, path, document_root=str(settings.STATIC_ROOT))
-        result['serve_status'] = response.status_code
-        result['serve_content_type'] = response.get('Content-Type', 'unknown')
-    except Http404 as e:
-        result['serve_error'] = f"Http404: {str(e)}"
-    except Exception as e:
-        result['serve_error'] = f"Exception: {type(e).__name__}: {str(e)}"
-    
-    return JsonResponse(result, json_dumps_params={'indent': 2})

@@ -19,20 +19,21 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
-import os
 
-# Static and media files FIRST - before any app URLs
 urlpatterns = [
-    # Serve static files from STATIC_ROOT using /assets/ to avoid DigitalOcean ingress conflict
-    re_path(r'^assets/(?P<path>.*)$', serve, {
-        'document_root': settings.STATIC_ROOT,
-    }),
-    # Serve media files from MEDIA_ROOT  
-    re_path(r'^media/(?P<path>.*)$', serve, {
-        'document_root': settings.MEDIA_ROOT,
-    }),
-    # Admin and app URLs
     path("admin/", admin.site.urls),
     path("api/", include("events.api.urls")),
     path("", include("events.urls")),
 ]
+
+# Serve media files - WhiteNoise handles static files via middleware
+urlpatterns += [
+    re_path(r'^media/(?P<path>.*)$', serve, {
+        'document_root': settings.MEDIA_ROOT,
+    }),
+]
+
+# In development, also serve static files via Django
+if settings.DEBUG:
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
