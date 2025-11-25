@@ -262,3 +262,36 @@ def serve_css(request):
         return HttpResponse(f"File not found: {css_path}", status=404)
     except Exception as e:
         return HttpResponse(f"Error: {str(e)}", status=500)
+
+
+def test_serve(request, path="css/gamebuzz.css"):
+    """Test the serve view logic"""
+    import os
+    from django.conf import settings
+    from django.views.static import serve
+    from django.http import Http404
+    
+    result = {
+        'path': path,
+        'document_root': str(settings.STATIC_ROOT),
+        'full_path': os.path.join(str(settings.STATIC_ROOT), path),
+    }
+    
+    # Check if file exists
+    full_path = os.path.join(str(settings.STATIC_ROOT), path)
+    result['file_exists'] = os.path.exists(full_path)
+    result['is_file'] = os.path.isfile(full_path)
+    
+    # Try to call serve directly
+    try:
+        from django.http import HttpRequest
+        # This will raise Http404 if file not found
+        response = serve(request, path, document_root=str(settings.STATIC_ROOT))
+        result['serve_status'] = response.status_code
+        result['serve_content_type'] = response.get('Content-Type', 'unknown')
+    except Http404 as e:
+        result['serve_error'] = f"Http404: {str(e)}"
+    except Exception as e:
+        result['serve_error'] = f"Exception: {type(e).__name__}: {str(e)}"
+    
+    return JsonResponse(result, json_dumps_params={'indent': 2})
