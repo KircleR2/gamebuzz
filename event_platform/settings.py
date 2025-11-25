@@ -237,6 +237,10 @@ UNFOLD = {
     },
 }
 
+# Login redirect settings
+LOGIN_REDIRECT_URL = "/dashboard/"
+LOGIN_URL = "/dashboard/login/"
+
 # Security settings for production
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
