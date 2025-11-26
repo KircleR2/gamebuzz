@@ -235,6 +235,12 @@ UNFOLD = {
             "900": "88 28 135",
         },
     },
+    # Add custom CSS to fix input field borders
+    "STYLES": [
+        {
+            "source": "/assets/admin/css/admin_custom.css",
+        },
+    ],
 }
 
 # Login redirect settings
