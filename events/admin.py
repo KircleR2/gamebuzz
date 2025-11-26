@@ -34,9 +34,10 @@ class CategoryAdmin(admin.ModelAdmin):
     
     class Media:
         css = {
-            'all': [
+            'all': (
+                'admin/css/admin_custom.css',  # Fix input field borders
                 'https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css',
-            ]
+            )
         }
 
 @admin.register(Event)
@@ -149,7 +150,10 @@ class EventAdmin(admin.ModelAdmin):
 
     class Media:
         css = {
-            'all': ('admin/css/event_admin.css',)
+            'all': (
+                'admin/css/admin_custom.css',  # Fix input field borders
+                'admin/css/event_admin.css',
+            )
         }
         js = ('admin/js/event_admin.js',)
 
@@ -190,3 +194,8 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
         updated = queryset.update(is_active=False, unsubscribed_at=timezone.now())
         self.message_user(request, _("{} suscriptores desactivados correctamente.").format(updated))
     deactivate_subscribers.short_description = _("Desactivar suscriptores seleccionados")
+    
+    class Media:
+        css = {
+            'all': ('admin/css/admin_custom.css',)  # Fix input field borders
+        }

@@ -1,6 +1,6 @@
-/* Custom Admin CSS - Fix input field borders */
+/* Custom Admin CSS - Fix input field borders for Django Unfold */
 
-/* Fix input field borders in dark theme */
+/* Target all input types in dark theme */
 .dark input[type="text"],
 .dark input[type="email"],
 .dark input[type="password"],
@@ -9,11 +9,30 @@
 .dark input[type="datetime-local"],
 .dark input[type="time"],
 .dark input[type="url"],
+.dark input[type="tel"],
+.dark input[type="search"],
 .dark textarea,
-.dark select {
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    border-radius: 0.375rem;
+.dark select,
+.dark .vTextField,
+.dark .vLargeTextField,
+.dark .vSmallTextField,
+.dark .vIntegerField,
+.dark .vDecimalField,
+.dark .vDateField,
+.dark .vTimeField,
+.dark .vURLField,
+.dark .vEmailField,
+.dark .vTextField input,
+.dark .vLargeTextField textarea,
+.dark form input[type="text"],
+.dark form input[type="email"],
+.dark form input[type="number"],
+.dark form textarea,
+.dark form select {
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 0.375rem !important;
     background-color: rgba(255, 255, 255, 0.05) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
 }
 
 .dark input[type="text"]:focus,
@@ -24,14 +43,24 @@
 .dark input[type="datetime-local"]:focus,
 .dark input[type="time"]:focus,
 .dark input[type="url"]:focus,
+.dark input[type="tel"]:focus,
+.dark input[type="search"]:focus,
 .dark textarea:focus,
-.dark select:focus {
-    border-color: rgba(168, 85, 247, 0.8) !important;
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1) !important;
+.dark select:focus,
+.dark .vTextField input:focus,
+.dark .vLargeTextField textarea:focus,
+.dark form input[type="text"]:focus,
+.dark form input[type="email"]:focus,
+.dark form input[type="number"]:focus,
+.dark form textarea:focus,
+.dark form select:focus {
+    border-color: rgba(168, 85, 247, 0.9) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.2) !important;
+    background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
-/* Also fix for light theme if needed */
+/* Fix for light theme */
 input[type="text"],
 input[type="email"],
 input[type="password"],
@@ -40,10 +69,28 @@ input[type="date"],
 input[type="datetime-local"],
 input[type="time"],
 input[type="url"],
+input[type="tel"],
+input[type="search"],
 textarea,
-select {
+select,
+.vTextField,
+.vLargeTextField,
+.vSmallTextField,
+.vIntegerField,
+.vDecimalField,
+.vDateField,
+.vTimeField,
+.vURLField,
+.vEmailField,
+.vTextField input,
+.vLargeTextField textarea,
+form input[type="text"],
+form input[type="email"],
+form input[type="number"],
+form textarea,
+form select {
     border: 1px solid #D1D5DB !important;
-    border-radius: 0.375rem;
+    border-radius: 0.375rem !important;
 }
 
 input[type="text"]:focus,
@@ -54,25 +101,33 @@ input[type="date"]:focus,
 input[type="datetime-local"]:focus,
 input[type="time"]:focus,
 input[type="url"]:focus,
+input[type="tel"]:focus,
+input[type="search"]:focus,
 textarea:focus,
-select:focus {
+select:focus,
+.vTextField input:focus,
+.vLargeTextField textarea:focus,
+form input[type="text"]:focus,
+form input[type="email"]:focus,
+form input[type="number"]:focus,
+form textarea:focus,
+form select:focus {
     border-color: #A855F7 !important;
-    outline: none;
+    outline: none !important;
     box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1) !important;
 }
 
-/* Fix for form fields in admin */
-.dark .form-field input,
-.dark .form-field textarea,
-.dark .form-field select {
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+/* Ensure inputs are visible even without focus */
+.dark input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+.dark textarea,
+.dark select {
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
     background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-.dark .form-field input:focus,
-.dark .form-field textarea:focus,
-.dark .form-field select:focus {
-    border-color: rgba(168, 85, 247, 0.8) !important;
-    box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1) !important;
+input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]),
+textarea,
+select {
+    border: 1px solid #D1D5DB !important;
 }
 
