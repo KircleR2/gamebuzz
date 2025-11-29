@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Comprar Entradas - {{ event.title }} - GameBuzz{% endblock %}
+
+{% block content %}
+<section class="section" style="padding-top: 2rem; min-height: 80vh;">
+    <div class="container" style="max-width: 900px;">
+        <!-- Back link -->
+        <a href="{% url 'event_detail' event.slug %}" class="back-link" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--gray-600); text-decoration: none; margin-bottom: 1.5rem;">
+            <i class="bi bi-arrow-left"></i> Volver al evento
+        </a>
+        
+        <div class="checkout-grid" style="display: grid; grid-template-columns: 1fr 380px; gap: 2rem;">
+            <!-- Main checkout form -->
+            <div class="checkout-form-section">
+                <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">Comprar Entradas</h1>
+                <p style="color: var(--gray-600); margin-bottom: 2rem;">{{ event.title }}</p>
+                
+                <form id="checkout-form" method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Ticket Selection -->
+                    <div class="checkout-section" style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">
+                            <i class="bi bi-ticket-perforated" style="margin-right: 0.5rem;"></i>
+                            Selecciona tus entradas
+                        </h2>
+                        
+                        {% if ticket_types %}
+                            {% for ticket in ticket_types %}
+                            <div class="ticket-row" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #E5E7EB; border-radius: 8px; margin-bottom: 0.75rem; {% if ticket.is_sold_out %}opacity: 0.5;{% endif %}">
+                                <div style="flex: 1;">
+                                    <h3 style="font-weight: 600; margin: 0 0 0.25rem;">{{ ticket.name }}</h3>
+                                    {% if ticket.description %}
+                                    <p style="font-size: 0.875rem; color: var(--gray-600); margin: 0 0 0.5rem;">{{ ticket.description }}</p>
+                                    {% endif %}
+                                    <div style="display: flex; align-items: center; gap: 1rem;">
+                                        <span style="font-weight: 700; color: var(--primary-blue); font-size: 1.125rem;">${{ ticket.price }}</span>
+                                        {% if ticket.is_sold_out %}
+                                        <span style="font-size: 0.75rem; background: #FEE2E2; color: #DC2626; padding: 0.25rem 0.5rem; border-radius: 4px;">Agotado</span>
+                                        {% else %}
+                                        <span style="font-size: 0.75rem; color: var(--gray-500);">{{ ticket.quantity_remaining }} disponibles</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    {% if not ticket.is_sold_out %}
+                                    <button type="button" class="qty-btn" onclick="updateQuantity({{ ticket.id }}, -1)" style="width: 32px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: white; cursor: pointer; font-size: 1.25rem;">−</button>
+                                    <input type="number" 
+                                           name="ticket_{{ ticket.id }}" 
+                                           id="qty_{{ ticket.id }}" 
+                                           value="0" 
+                                           min="0" 
+                                           max="{{ ticket.max_per_order }}"
+                                           data-price="{{ ticket.price }}"
+                                           data-max="{{ ticket.max_per_order }}"
+                                           data-remaining="{{ ticket.quantity_remaining }}"
+                                           class="qty-input" 
+                                           style="width: 50px; text-align: center; border: 1px solid #E5E7EB; border-radius: 6px; padding: 0.5rem; font-weight: 600;"
+                                           onchange="updateTotal()">
+                                    <button type="button" class="qty-btn" onclick="updateQuantity({{ ticket.id }}, 1)" style="width: 32px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: white; cursor: pointer; font-size: 1.25rem;">+</button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div style="text-align: center; padding: 2rem; color: var(--gray-500);">
+                                <i class="bi bi-ticket" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                                <p>No hay entradas disponibles para este evento.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Customer Information -->
+                    <div class="checkout-section" style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">
+                            <i class="bi bi-person" style="margin-right: 0.5rem;"></i>
+                            Tu Información
+                        </h2>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="customer_name" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Nombre completo *</label>
+                            <input type="text" 
+                                   id="customer_name" 
+                                   name="customer_name" 
+                                   required 
+                                   placeholder="Tu nombre completo"
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="customer_email" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Correo electrónico *</label>
+                            <input type="email" 
+                                   id="customer_email" 
+                                   name="customer_email" 
+                                   required 
+                                   placeholder="tu@email.com"
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white;">
+                            <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">Enviaremos la confirmación a este correo</p>
+                        </div>
+                        
+                        <div>
+                            <label for="customer_phone" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Teléfono (opcional)</label>
+                            <input type="tel" 
+                                   id="customer_phone" 
+                                   name="customer_phone" 
+                                   placeholder="+1 (555) 000-0000"
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white;">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Order Summary Sidebar -->
+            <div class="order-summary" style="position: sticky; top: 2rem; height: fit-content;">
+                <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Resumen del Pedido</h2>
+                    
+                    <!-- Event Info -->
+                    <div style="display: flex; gap: 1rem; padding-bottom: 1rem; border-bottom: 1px solid #E5E7EB; margin-bottom: 1rem;">
+                        {% if event.featured_image %}
+                        <img src="{{ event.featured_image.url }}" alt="{{ event.title }}" style="width: 80px; height: 60px; object-fit: cover; border-radius: 8px;">
+                        {% else %}
+                        <div style="width: 80px; height: 60px; background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-purple) 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-calendar-event" style="color: white; font-size: 1.5rem;"></i>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h3 style="font-weight: 600; margin: 0 0 0.25rem; font-size: 0.9rem;">{{ event.title }}</h3>
+                            <p style="font-size: 0.75rem; color: var(--gray-600); margin: 0;">
+                                <i class="bi bi-calendar-event"></i> {{ event.start_date|date:"d M, Y" }}
+                            </p>
+                            <p style="font-size: 0.75rem; color: var(--gray-600); margin: 0;">
+                                <i class="bi bi-geo-alt"></i> {{ event.city }}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Selected Tickets -->
+                    <div id="selected-tickets" style="margin-bottom: 1rem;">
+                        <p style="color: var(--gray-500); font-style: italic; text-align: center; padding: 1rem 0;">
+                            Selecciona tus entradas
+                        </p>
+                    </div>
+                    
+                    <!-- Total -->
+                    <div style="border-top: 2px solid #E5E7EB; padding-top: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-weight: 600; font-size: 1.125rem;">Total</span>
+                            <span id="order-total" style="font-weight: 700; font-size: 1.5rem; color: var(--primary-blue);">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" 
+                            form="checkout-form" 
+                            id="submit-btn"
+                            disabled
+                            style="width: 100%; margin-top: 1.5rem; padding: 1rem; background: var(--primary-blue); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; opacity: 0.5;">
+                        <i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i>
+                        Completar Compra
+                    </button>
+                    
+                    <p style="font-size: 0.75rem; color: var(--gray-500); text-align: center; margin-top: 1rem;">
+                        <i class="bi bi-shield-check"></i> Pago seguro - Tus datos están protegidos
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Success Modal -->
+<div id="success-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 16px; padding: 2rem; max-width: 400px; text-align: center;">
+        <div style="width: 64px; height: 64px; background: #10B981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+            <i class="bi bi-check-lg" style="color: white; font-size: 2rem;"></i>
+        </div>
+        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">¡Compra Exitosa!</h3>
+        <p style="color: var(--gray-600); margin-bottom: 1.5rem;">Tu orden ha sido procesada correctamente. Recibirás un correo con los detalles.</p>
+        <p style="font-weight: 600; margin-bottom: 1rem;">Número de orden: <span id="order-number" style="color: var(--primary-blue);"></span></p>
+        <a href="{% url 'event_list' %}" class="btn btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+            Volver al inicio
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ticketPrices = {};
+{% for ticket in ticket_types %}
+ticketPrices[{{ ticket.id }}] = {
+    price: {{ ticket.price }},
+    name: "{{ ticket.name }}",
+    max: {{ ticket.max_per_order }},
+    remaining: {{ ticket.quantity_remaining }}
+};
+{% endfor %}
+
+function updateQuantity(ticketId, delta) {
+    const input = document.getElementById('qty_' + ticketId);
+    let currentValue = parseInt(input.value) || 0;
+    let newValue = currentValue + delta;
+    
+    const max = Math.min(ticketPrices[ticketId].max, ticketPrices[ticketId].remaining);
+    
+    if (newValue < 0) newValue = 0;
+    if (newValue > max) newValue = max;
+    
+    input.value = newValue;
+    updateTotal();
+}
+
+function updateTotal() {
+    let total = 0;
+    let selectedTicketsHtml = '';
+    let hasSelection = false;
+    
+    for (const [ticketId, ticket] of Object.entries(ticketPrices)) {
+        const input = document.getElementById('qty_' + ticketId);
+        if (input) {
+            const quantity = parseInt(input.value) || 0;
+            if (quantity > 0) {
+                hasSelection = true;
+                const subtotal = quantity * ticket.price;
+                total += subtotal;
+                selectedTicketsHtml += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span>${quantity}x ${ticket.name}</span>
+                        <span style="font-weight: 600;">$${subtotal.toFixed(2)}</span>
+                    </div>
+                `;
+            }
+        }
+    }
+    
+    document.getElementById('order-total').textContent = '$' + total.toFixed(2);
+    
+    const selectedTicketsDiv = document.getElementById('selected-tickets');
+    if (hasSelection) {
+        selectedTicketsDiv.innerHTML = selectedTicketsHtml;
+    } else {
+        selectedTicketsDiv.innerHTML = '<p style="color: var(--gray-500); font-style: italic; text-align: center; padding: 1rem 0;">Selecciona tus entradas</p>';
+    }
+    
+    // Enable/disable submit button
+    const submitBtn = document.getElementById('submit-btn');
+    if (hasSelection) {
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+    } else {
+        submitBtn.disabled = true;
+        submitBtn.style.opacity = '0.5';
+    }
+}
+
+// Handle form submission
+document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Procesando...';
+    
+    try {
+        const formData = new FormData(this);
+        const response = await fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success modal
+            document.getElementById('order-number').textContent = result.order_number;
+            document.getElementById('success-modal').style.display = 'flex';
+        } else {
+            alert(result.message);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i> Completar Compra';
+        }
+    } catch (error) {
+        alert('Error al procesar la compra. Por favor intenta de nuevo.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i> Completar Compra';
+    }
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', updateTotal);
+</script>
+
+<style>
+.spin {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .checkout-grid {
+        grid-template-columns: 1fr !important;
+    }
+    .order-summary {
+        position: relative !important;
+        top: 0 !important;
+    }
+}
+</style>
+{% endblock %}
+

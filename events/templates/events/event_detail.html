@@ -152,13 +152,44 @@
                         {% endif %}
                     </div>
                     
-                    {% if event.registration_required %}
+                    <!-- Ticket Types Section -->
+                    {% if ticket_types %}
+                    <div class="ticket-types-section" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--gray-200);">
+                        <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 1rem;">Tipos de Entradas</h3>
+                        {% for ticket in ticket_types %}
+                        <div class="ticket-type-item" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--gray-50); border-radius: 8px; margin-bottom: 0.5rem;">
+                            <div>
+                                <span style="font-weight: 500;">{{ ticket.name }}</span>
+                                {% if ticket.description %}
+                                <p style="font-size: 0.8rem; color: var(--gray-600); margin: 0;">{{ ticket.description|truncatewords:10 }}</p>
+                                {% endif %}
+                                {% if ticket.is_sold_out %}
+                                <span style="font-size: 0.75rem; color: var(--error-color); font-weight: 500;">Agotado</span>
+                                {% else %}
+                                <span style="font-size: 0.75rem; color: var(--gray-500);">{{ ticket.quantity_remaining }} disponibles</span>
+                                {% endif %}
+                            </div>
+                            <span style="font-weight: 600; color: var(--primary-blue);">${{ ticket.price }}</span>
+                        </div>
+                        {% endfor %}
+                        
+                        <a href="{% url 'event_checkout' event.slug %}" class="btn btn-primary w-full" style="margin-top: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 1rem; font-size: 1.1rem; font-weight: 600; background: var(--primary-blue); color: white; border-radius: 8px; text-decoration: none; transition: all 0.2s;">
+                            <i class="bi bi-ticket-perforated"></i>
+                            Comprar Entradas
+                        </a>
+                    </div>
+                    {% elif event.is_free %}
+                    <div class="free-event-section" style="margin-bottom: 1.5rem; padding: 1rem; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 8px; text-align: center;">
+                        <i class="bi bi-check-circle-fill" style="font-size: 2rem; color: white;"></i>
+                        <p style="color: white; font-weight: 600; margin: 0.5rem 0 0;">¡Evento Gratuito!</p>
+                    </div>
+                    {% elif event.registration_required %}
                     <div class="event-registration">
                         <a href="{{ event.registration_url }}" class="btn btn-primary w-full" target="_blank">
                             <i class="bi bi-ticket-perforated"></i>
-                            Register for Event
+                            Registrarse para el Evento
                         </a>
-                        <p class="registration-note">Registration required to attend this event</p>
+                        <p class="registration-note">Se requiere registro para asistir a este evento</p>
                     </div>
                     {% endif %}
                     

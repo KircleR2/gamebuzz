@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
 import json
-from .models import Event, Category, NewsletterSubscriber
+from .models import Event, Category, NewsletterSubscriber, TicketType, Order, OrderItem
 from django.utils import timezone
 from django.db import models
 from django.shortcuts import get_object_or_404
@@ -78,6 +78,9 @@ class EventDetailView(DetailView):
             category=event.category,
             end_date__gte=timezone.now().date()
         ).exclude(id=event.id).order_by('start_date')[:3]
+        
+        # Get available ticket types for this event
+        context['ticket_types'] = event.ticket_types.filter(is_active=True).order_by('order', 'price')
         
         # Get event stats for display
         context['event_stats'] = {
@@ -190,3 +193,102 @@ class NewsletterSubscriptionView(View):
             }, status=500)
 
 
+class EventCheckoutView(TemplateView):
+    """Handle ticket checkout for an event"""
+    template_name = "events/checkout.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get the event
+        event = get_object_or_404(Event, slug=self.kwargs['slug'], status='published')
+        context['event'] = event
+        
+        # Get available ticket types
+        context['ticket_types'] = event.ticket_types.filter(is_active=True).order_by('order', 'price')
+        
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        """Handle checkout form submission"""
+        try:
+            event = get_object_or_404(Event, slug=self.kwargs['slug'], status='published')
+            
+            # Get customer info
+            customer_name = request.POST.get('customer_name', '').strip()
+            customer_email = request.POST.get('customer_email', '').strip()
+            customer_phone = request.POST.get('customer_phone', '').strip()
+            
+            if not customer_name or not customer_email:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Nombre y correo electrónico son requeridos.'
+                }, status=400)
+            
+            # Get ticket selections
+            ticket_items = []
+            total_amount = 0
+            
+            for ticket_type in event.ticket_types.filter(is_active=True):
+                quantity = int(request.POST.get(f'ticket_{ticket_type.id}', 0))
+                if quantity > 0:
+                    # Validate quantity
+                    if quantity > ticket_type.quantity_remaining:
+                        return JsonResponse({
+                            'success': False,
+                            'message': f'No hay suficientes entradas de tipo "{ticket_type.name}" disponibles.'
+                        }, status=400)
+                    if quantity > ticket_type.max_per_order:
+                        return JsonResponse({
+                            'success': False,
+                            'message': f'Máximo {ticket_type.max_per_order} entradas de tipo "{ticket_type.name}" por orden.'
+                        }, status=400)
+                    
+                    ticket_items.append({
+                        'ticket_type': ticket_type,
+                        'quantity': quantity,
+                        'unit_price': ticket_type.price,
+                        'subtotal': ticket_type.price * quantity
+                    })
+                    total_amount += ticket_type.price * quantity
+            
+            if not ticket_items:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Por favor selecciona al menos una entrada.'
+                }, status=400)
+            
+            # Create order
+            order = Order.objects.create(
+                event=event,
+                customer_name=customer_name,
+                customer_email=customer_email,
+                customer_phone=customer_phone,
+                total_amount=total_amount,
+                status='completed'  # For now, assume instant completion
+            )
+            
+            # Create order items and update ticket quantities
+            for item in ticket_items:
+                OrderItem.objects.create(
+                    order=order,
+                    ticket_type=item['ticket_type'],
+                    quantity=item['quantity'],
+                    unit_price=item['unit_price'],
+                    subtotal=item['subtotal']
+                )
+                # Update sold count
+                item['ticket_type'].quantity_sold += item['quantity']
+                item['ticket_type'].save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': '¡Compra completada! Te hemos enviado un correo con los detalles.',
+                'order_number': order.order_number
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al procesar la compra: {str(e)}'
+            }, status=500)

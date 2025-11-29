@@ -138,3 +138,104 @@ class NewsletterSubscriber(models.Model):
         self.is_active = True
         self.unsubscribed_at = None
         self.save()
+
+
+class TicketType(models.Model):
+    """Different ticket types/tiers for an event"""
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='ticket_types', verbose_name=_('evento'))
+    name = models.CharField(_('nombre'), max_length=100, help_text=_("ej., 'Entrada General', 'VIP', 'Early Bird'"))
+    description = models.TextField(_('descripción'), blank=True, help_text=_("Descripción del tipo de entrada"))
+    price = models.DecimalField(_('precio'), max_digits=10, decimal_places=2)
+    quantity_available = models.PositiveIntegerField(_('cantidad disponible'), help_text=_("Número total de entradas disponibles"))
+    quantity_sold = models.PositiveIntegerField(_('cantidad vendida'), default=0)
+    sale_start = models.DateTimeField(_('inicio de venta'), blank=True, null=True)
+    sale_end = models.DateTimeField(_('fin de venta'), blank=True, null=True)
+    max_per_order = models.PositiveIntegerField(_('máximo por orden'), default=10, help_text=_("Número máximo de entradas por orden"))
+    is_active = models.BooleanField(_('activo'), default=True)
+    order = models.PositiveIntegerField(_('orden'), default=0, help_text=_("Orden de visualización"))
+    created_at = models.DateTimeField(_('fecha de creación'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('fecha de actualización'), auto_now=True)
+
+    class Meta:
+        verbose_name = _("Tipo de Entrada")
+        verbose_name_plural = _("Tipos de Entradas")
+        ordering = ['order', 'price']
+
+    def __str__(self):
+        return f"{self.name} - {self.event.title} (${self.price})"
+
+    @property
+    def quantity_remaining(self):
+        return self.quantity_available - self.quantity_sold
+
+    @property
+    def is_sold_out(self):
+        return self.quantity_remaining <= 0
+
+    @property
+    def is_on_sale(self):
+        now = timezone.now()
+        if not self.is_active:
+            return False
+        if self.sale_start and now < self.sale_start:
+            return False
+        if self.sale_end and now > self.sale_end:
+            return False
+        return not self.is_sold_out
+
+
+class Order(models.Model):
+    """Track ticket purchases"""
+    STATUS_CHOICES = [
+        ('pending', _('Pendiente')),
+        ('completed', _('Completado')),
+        ('cancelled', _('Cancelado')),
+        ('refunded', _('Reembolsado')),
+    ]
+    
+    order_number = models.CharField(_('número de orden'), max_length=50, unique=True)
+    event = models.ForeignKey(Event, on_delete=models.PROTECT, related_name='orders', verbose_name=_('evento'))
+    customer_email = models.EmailField(_('correo del cliente'))
+    customer_name = models.CharField(_('nombre del cliente'), max_length=200)
+    customer_phone = models.CharField(_('teléfono del cliente'), max_length=50, blank=True)
+    status = models.CharField(_('estado'), max_length=20, choices=STATUS_CHOICES, default='pending')
+    total_amount = models.DecimalField(_('monto total'), max_digits=10, decimal_places=2)
+    payment_method = models.CharField(_('método de pago'), max_length=50, blank=True)
+    payment_reference = models.CharField(_('referencia de pago'), max_length=200, blank=True)
+    notes = models.TextField(_('notas'), blank=True)
+    created_at = models.DateTimeField(_('fecha de creación'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('fecha de actualización'), auto_now=True)
+
+    class Meta:
+        verbose_name = _("Orden")
+        verbose_name_plural = _("Órdenes")
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Orden {self.order_number} - {self.customer_name}"
+
+    def save(self, *args, **kwargs):
+        if not self.order_number:
+            import uuid
+            self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+
+
+class OrderItem(models.Model):
+    """Individual line items in an order"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items', verbose_name=_('orden'))
+    ticket_type = models.ForeignKey(TicketType, on_delete=models.PROTECT, verbose_name=_('tipo de entrada'))
+    quantity = models.PositiveIntegerField(_('cantidad'))
+    unit_price = models.DecimalField(_('precio unitario'), max_digits=10, decimal_places=2)
+    subtotal = models.DecimalField(_('subtotal'), max_digits=10, decimal_places=2)
+
+    class Meta:
+        verbose_name = _("Ítem de Orden")
+        verbose_name_plural = _("Ítems de Orden")
+
+    def __str__(self):
+        return f"{self.quantity}x {self.ticket_type.name}"
+
+    def save(self, *args, **kwargs):
+        self.subtotal = self.quantity * self.unit_price
+        super().save(*args, **kwargs)

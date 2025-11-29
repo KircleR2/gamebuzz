@@ -2,10 +2,24 @@
 
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Category, Event, NewsletterSubscriber
+from .models import Category, Event, NewsletterSubscriber, TicketType, Order, OrderItem
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from .forms import IconField
+
+
+class TicketTypeInline(admin.TabularInline):
+    model = TicketType
+    extra = 1
+    fields = ('name', 'price', 'quantity_available', 'quantity_sold', 'max_per_order', 'is_active', 'order')
+    readonly_fields = ('quantity_sold',)
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+    readonly_fields = ('ticket_type', 'quantity', 'unit_price', 'subtotal')
+    can_delete = False
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -42,7 +56,8 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('title', 'status', 'category', 'event_date', 'location_display', 'is_featured', 'show_in_hero')
+    list_display = ('title', 'status', 'category', 'event_date', 'location_display', 'is_featured', 'show_in_hero', 'ticket_count')
+    inlines = [TicketTypeInline]
     list_filter = (
         'status',
         'is_featured',
@@ -148,6 +163,12 @@ class EventAdmin(admin.ModelAdmin):
             obj.organizer_name = obj.organizer_name or request.user.get_full_name() or request.user.username
         super().save_model(request, obj, form, change)
 
+    def ticket_count(self, obj):
+        """Show number of ticket types"""
+        count = obj.ticket_types.count()
+        return f"{count} tipos"
+    ticket_count.short_description = _('Entradas')
+
     class Media:
         css = {
             'all': (
@@ -198,4 +219,55 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
     class Media:
         css = {
             'all': ('admin/css/admin_custom.css',)  # Fix input field borders
+        }
+
+
+@admin.register(TicketType)
+class TicketTypeAdmin(admin.ModelAdmin):
+    list_display = ('name', 'event', 'price', 'quantity_available', 'quantity_sold', 'quantity_remaining', 'is_active')
+    list_filter = ('is_active', 'event')
+    search_fields = ('name', 'event__title')
+    readonly_fields = ('quantity_sold', 'created_at', 'updated_at')
+    
+    def quantity_remaining(self, obj):
+        return obj.quantity_remaining
+    quantity_remaining.short_description = _('Disponibles')
+    
+    class Media:
+        css = {
+            'all': ('admin/css/admin_custom.css',)
+        }
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ('order_number', 'event', 'customer_name', 'customer_email', 'total_amount', 'status', 'created_at')
+    list_filter = ('status', 'event', 'created_at')
+    search_fields = ('order_number', 'customer_name', 'customer_email')
+    readonly_fields = ('order_number', 'created_at', 'updated_at')
+    inlines = [OrderItemInline]
+    
+    fieldsets = (
+        (_('Información de la Orden'), {
+            'fields': ('order_number', 'event', 'status')
+        }),
+        (_('Información del Cliente'), {
+            'fields': ('customer_name', 'customer_email', 'customer_phone')
+        }),
+        (_('Pago'), {
+            'fields': ('total_amount', 'payment_method', 'payment_reference')
+        }),
+        (_('Notas'), {
+            'fields': ('notes',),
+            'classes': ('collapse',)
+        }),
+        (_('Marcas de Tiempo'), {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    class Media:
+        css = {
+            'all': ('admin/css/admin_custom.css',)
         }
