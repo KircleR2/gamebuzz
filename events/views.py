@@ -61,13 +61,12 @@ class EventDetailView(DetailView):
     model = Event
     template_name = "events/event_detail.html"
     context_object_name = "event"
-    slug_field = "slug"  # Explicitly set slug field
-    slug_url_kwarg = "slug"  # Explicitly set URL kwarg
+    slug_field = "slug"
+    slug_url_kwarg = "slug"
     
     def get_queryset(self):
-        # TEMPORARILY: Return ALL events to debug 404 issue
-        # TODO: Restore status='published' filter after debugging
-        return Event.objects.all()
+        # Only show published events
+        return Event.objects.filter(status='published')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
