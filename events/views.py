@@ -61,9 +61,35 @@ class EventDetailView(DetailView):
     model = Event
     template_name = "events/event_detail.html"
     context_object_name = "event"
+    slug_field = "slug"  # Explicitly set slug field
+    slug_url_kwarg = "slug"  # Explicitly set URL kwarg
     
     def get_queryset(self):
+        # Return all published events
         return Event.objects.filter(status='published')
+    
+    def get_object(self, queryset=None):
+        """Override to add debug info and handle edge cases"""
+        if queryset is None:
+            queryset = self.get_queryset()
+        
+        slug = self.kwargs.get(self.slug_url_kwarg)
+        
+        # Try to get the event
+        try:
+            obj = queryset.get(slug=slug)
+            return obj
+        except Event.DoesNotExist:
+            # Debug: Check if event exists at all
+            all_events = Event.objects.filter(slug=slug)
+            if all_events.exists():
+                event = all_events.first()
+                # If event exists but is not published, still show 404
+                # but log the actual status for debugging
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.warning(f"Event '{slug}' exists but status is '{event.status}', not 'published'")
+            raise
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
