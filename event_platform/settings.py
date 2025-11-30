@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     # Third party apps
     "rest_framework",
     "django_filters",
+    "storages",  # django-storages for S3/Spaces
     # My apps
     "events"
 ]
@@ -197,11 +198,48 @@ STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 WHITENOISE_USE_FINDERS = DEBUG  # Only use finders in development
 
 # Media files (User uploaded files)
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# DigitalOcean Spaces Configuration (S3-compatible object storage)
+# Set these environment variables in DigitalOcean App Platform to enable persistent media storage
+AWS_ACCESS_KEY_ID = os.environ.get("SPACES_ACCESS_KEY")
+AWS_SECRET_ACCESS_KEY = os.environ.get("SPACES_SECRET_KEY")
+AWS_STORAGE_BUCKET_NAME = os.environ.get("SPACES_BUCKET_NAME")
+AWS_S3_REGION_NAME = os.environ.get("SPACES_REGION", "nyc3")
+AWS_S3_ENDPOINT_URL = os.environ.get("SPACES_ENDPOINT_URL")  # e.g., https://nyc3.digitaloceanspaces.com
+AWS_S3_CUSTOM_DOMAIN = os.environ.get("SPACES_CDN_DOMAIN")  # e.g., your-bucket.nyc3.cdn.digitaloceanspaces.com
 
-# Create media directory if it doesn't exist
-os.makedirs(MEDIA_ROOT, exist_ok=True)
+# Use DigitalOcean Spaces for media if configured, otherwise use local storage
+if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME and AWS_S3_ENDPOINT_URL:
+    # S3/Spaces settings
+    AWS_DEFAULT_ACL = "public-read"
+    AWS_S3_OBJECT_PARAMETERS = {
+        "CacheControl": "max-age=86400",  # 1 day cache
+    }
+    AWS_LOCATION = "media"
+    AWS_QUERYSTRING_AUTH = False  # Don't add auth params to URLs (makes them public)
+    
+    # Use S3 storage for media files
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    
+    # Media URL - use CDN domain if available, otherwise construct from endpoint
+    if AWS_S3_CUSTOM_DOMAIN:
+        MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
+    else:
+        MEDIA_URL = f"{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/"
+    
+    # No local MEDIA_ROOT needed when using Spaces
+    MEDIA_ROOT = None
+    
+    print("✅ Using DigitalOcean Spaces for media storage")
+else:
+    # Local file storage (for development)
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
+    
+    # Create media directory if it doesn't exist
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+    
+    if not DEBUG:
+        print("⚠️  Warning: Using local media storage in production. Files will be lost on deployment!")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
