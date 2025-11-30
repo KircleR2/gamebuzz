@@ -123,6 +123,47 @@
 
     <!-- GameBuzz JavaScript -->
     <script src="{% static 'js/gamebuzz.js' %}"></script>
+    
+    <!-- Fallback for broken images -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Default fallback images for different contexts
+        const fallbackImages = {
+            'event-hero': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
+            'event-card': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
+            'organizer-logo': 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?q=80&w=200&auto=format&fit=crop',
+            'default': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop'
+        };
+        
+        // Handle all images that fail to load
+        document.querySelectorAll('img').forEach(img => {
+            img.addEventListener('error', function() {
+                // Determine fallback based on context
+                let fallback = fallbackImages.default;
+                
+                if (this.classList.contains('event-hero-image') || this.closest('.event-hero')) {
+                    fallback = fallbackImages['event-hero'];
+                } else if (this.closest('.event-card') || this.closest('.event-image')) {
+                    fallback = fallbackImages['event-card'];
+                } else if (this.classList.contains('organizer-logo') || this.closest('.organizer-info')) {
+                    fallback = fallbackImages['organizer-logo'];
+                }
+                
+                // Only replace if not already a fallback URL (prevent infinite loop)
+                if (!this.src.includes('unsplash.com')) {
+                    this.src = fallback;
+                    console.log('Image fallback applied:', this.alt || 'unnamed image');
+                }
+            });
+            
+            // Also trigger error handler for images that are already broken
+            if (img.complete && img.naturalHeight === 0) {
+                img.dispatchEvent(new Event('error'));
+            }
+        });
+    });
+    </script>
+    
     {% block extra_js %}{% endblock %}
 </body>
 </html> 

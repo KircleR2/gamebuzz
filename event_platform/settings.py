@@ -197,11 +197,46 @@ STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
 WHITENOISE_USE_FINDERS = DEBUG  # Only use finders in development
 
 # Media files (User uploaded files)
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# DigitalOcean Spaces configuration for persistent media storage
+DO_SPACES_ACCESS_KEY = os.environ.get("DO_SPACES_ACCESS_KEY")
+DO_SPACES_SECRET_KEY = os.environ.get("DO_SPACES_SECRET_KEY")
+DO_SPACES_BUCKET_NAME = os.environ.get("DO_SPACES_BUCKET_NAME")
+DO_SPACES_REGION = os.environ.get("DO_SPACES_REGION", "nyc3")
+DO_SPACES_ENDPOINT = os.environ.get("DO_SPACES_ENDPOINT", f"https://{DO_SPACES_REGION}.digitaloceanspaces.com")
 
-# Create media directory if it doesn't exist
-os.makedirs(MEDIA_ROOT, exist_ok=True)
+# Use DigitalOcean Spaces if configured, otherwise use local storage
+if DO_SPACES_ACCESS_KEY and DO_SPACES_SECRET_KEY and DO_SPACES_BUCKET_NAME:
+    # DigitalOcean Spaces (S3-compatible) storage configuration
+    AWS_ACCESS_KEY_ID = DO_SPACES_ACCESS_KEY
+    AWS_SECRET_ACCESS_KEY = DO_SPACES_SECRET_KEY
+    AWS_STORAGE_BUCKET_NAME = DO_SPACES_BUCKET_NAME
+    AWS_S3_REGION_NAME = DO_SPACES_REGION
+    AWS_S3_ENDPOINT_URL = DO_SPACES_ENDPOINT
+    AWS_S3_CUSTOM_DOMAIN = f"{DO_SPACES_BUCKET_NAME}.{DO_SPACES_REGION}.cdn.digitaloceanspaces.com"
+    AWS_S3_OBJECT_PARAMETERS = {
+        "CacheControl": "max-age=86400",  # Cache for 1 day
+        "ACL": "public-read",
+    }
+    AWS_DEFAULT_ACL = "public-read"
+    AWS_QUERYSTRING_AUTH = False
+    AWS_LOCATION = "media"
+    
+    # Use S3 storage for media files
+    DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
+    
+    print("✅ Using DigitalOcean Spaces for media storage")
+else:
+    # Fall back to local storage (for development or when Spaces not configured)
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "media"
+    
+    # Create media directory if it doesn't exist
+    os.makedirs(MEDIA_ROOT, exist_ok=True)
+    
+    if not DEBUG:
+        print("⚠️  Warning: Using local media storage in production. Media files will not persist across deployments.")
+        print("   Configure DO_SPACES_ACCESS_KEY, DO_SPACES_SECRET_KEY, and DO_SPACES_BUCKET_NAME for persistent storage.")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
