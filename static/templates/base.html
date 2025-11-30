@@ -124,44 +124,46 @@
     <!-- GameBuzz JavaScript -->
     <script src="{% static 'js/gamebuzz.js' %}"></script>
     
-    <!-- Fallback for broken images -->
+    <!-- Handle broken images with fallback -->
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Default fallback images for different contexts
-        const fallbackImages = {
-            'event-hero': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
-            'event-card': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop',
-            'organizer-logo': 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?q=80&w=200&auto=format&fit=crop',
-            'default': 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop'
-        };
+    (function() {
+        // Default fallback image from Unsplash
+        const DEFAULT_EVENT_IMAGE = 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=2070&auto=format&fit=crop';
+        const DEFAULT_ORGANIZER_IMAGE = 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop';
         
-        // Handle all images that fail to load
-        document.querySelectorAll('img').forEach(img => {
-            img.addEventListener('error', function() {
-                // Determine fallback based on context
-                let fallback = fallbackImages.default;
-                
-                if (this.classList.contains('event-hero-image') || this.closest('.event-hero')) {
-                    fallback = fallbackImages['event-hero'];
-                } else if (this.closest('.event-card') || this.closest('.event-image')) {
-                    fallback = fallbackImages['event-card'];
-                } else if (this.classList.contains('organizer-logo') || this.closest('.organizer-info')) {
-                    fallback = fallbackImages['organizer-logo'];
+        // Handle all image errors
+        document.addEventListener('error', function(e) {
+            if (e.target.tagName === 'IMG') {
+                const img = e.target;
+                // Prevent infinite loop if fallback also fails
+                if (!img.dataset.fallbackAttempted) {
+                    img.dataset.fallbackAttempted = 'true';
+                    
+                    // Choose appropriate fallback based on context
+                    if (img.classList.contains('organizer-logo') || img.src.includes('organizer')) {
+                        img.src = DEFAULT_ORGANIZER_IMAGE;
+                    } else {
+                        img.src = DEFAULT_EVENT_IMAGE;
+                    }
+                    
+                    // Add a subtle style to indicate it's a placeholder
+                    img.style.objectFit = 'cover';
                 }
-                
-                // Only replace if not already a fallback URL (prevent infinite loop)
-                if (!this.src.includes('unsplash.com')) {
-                    this.src = fallback;
-                    console.log('Image fallback applied:', this.alt || 'unnamed image');
+            }
+        }, true);
+        
+        // Also handle images that failed to load before JavaScript initialized
+        document.querySelectorAll('img').forEach(function(img) {
+            if (img.complete && img.naturalHeight === 0 && !img.dataset.fallbackAttempted) {
+                img.dataset.fallbackAttempted = 'true';
+                if (img.classList.contains('organizer-logo') || img.src.includes('organizer')) {
+                    img.src = DEFAULT_ORGANIZER_IMAGE;
+                } else {
+                    img.src = DEFAULT_EVENT_IMAGE;
                 }
-            });
-            
-            // Also trigger error handler for images that are already broken
-            if (img.complete && img.naturalHeight === 0) {
-                img.dispatchEvent(new Event('error'));
             }
         });
-    });
+    })();
     </script>
     
     {% block extra_js %}{% endblock %}

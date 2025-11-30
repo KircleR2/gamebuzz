@@ -215,7 +215,7 @@ class NewsletterSubscriberAdmin(admin.ModelAdmin):
         updated = queryset.update(is_active=False, unsubscribed_at=timezone.now())
         self.message_user(request, _("{} suscriptores desactivados correctamente.").format(updated))
     deactivate_subscribers.short_description = _("Desactivar suscriptores seleccionados")
-    
+
     class Media:
         css = {
             'all': ('admin/css/admin_custom.css',)  # Fix input field borders
