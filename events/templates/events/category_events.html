@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}{{ category.name }} Events - PassClub{% endblock %}
+{% block title %}Eventos de {{ category.name }} - PassClub{% endblock %}
 
 {% block content %}
 <!-- Category Header -->
 <section class="section category-header">
     <div class="container">
         <div class="category-header-content">
-            <p class="in-passclub">in PassClub</p>
+            <p class="in-passclub">en PassClub</p>
             <h1 class="category-title">{{ category.name }}</h1>
             {% if category.description %}
             <p class="category-description">{{ category.description }}</p>
@@ -22,12 +22,12 @@
         <!-- Filter Options -->
         <div class="filter-options">
             <div class="filter-dropdown">
-                <label for="sort-by">Sort By:</label>
+                <label for="sort-by">Ordenar por:</label>
                 <select id="sort-by" class="form-select">
-                    <option value="date-asc">Date (Earliest First)</option>
-                    <option value="date-desc">Date (Latest First)</option>
-                    <option value="name-asc">Name (A-Z)</option>
-                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="date-asc">Fecha (Más Próximo)</option>
+                    <option value="date-desc">Fecha (Más Lejano)</option>
+                    <option value="name-asc">Nombre (A-Z)</option>
+                    <option value="name-desc">Nombre (Z-A)</option>
                 </select>
             </div>
         </div>
@@ -51,7 +51,7 @@
                     <div class="event-details">
                         <div class="event-detail">
                             <i class="bi bi-calendar-event"></i>
-                            <span>{{ event.start_date|date:"M d, Y" }}</span>
+                            <span>{{ event.start_date|date:"d M, Y" }}</span>
                         </div>
                         <div class="event-detail">
                             <i class="bi bi-clock"></i>
@@ -66,20 +66,20 @@
                     <div class="flex items-center justify-between">
                         <span class="event-price">
                             {% if event.is_free %}
-                            Free
+                            Gratis
                             {% else %}
                             {{ event.price_display|default:'$' }}
                             {% endif %}
                         </span>
-                        <a href="{% url 'event_detail' event.slug %}" class="event-link">Learn More <i class="bi bi-arrow-right"></i></a>
+                        <a href="{% url 'event_detail' event.slug %}" class="event-link">Más Información <i class="bi bi-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
             {% empty %}
             <div class="no-events-message">
                 <i class="bi bi-calendar-x"></i>
-                <h3>No events found</h3>
-                <p>There are currently no {{ category.name }} events scheduled. Please check back later or explore other categories.</p>
+                <h3>No se encontraron eventos</h3>
+                <p>Actualmente no hay eventos de {{ category.name }} programados. Por favor, vuelve más tarde o explora otras categorías.</p>
             </div>
             {% endfor %}
         </div>
@@ -89,8 +89,8 @@
         <div class="pagination">
             <div class="pagination-container">
                 {% if page_obj.has_previous %}
-                <a href="?page=1" class="pagination-item">&laquo; First</a>
-                <a href="?page={{ page_obj.previous_page_number }}" class="pagination-item">Previous</a>
+                <a href="?page=1" class="pagination-item">&laquo; Primera</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="pagination-item">Anterior</a>
                 {% endif %}
                 
                 {% for num in page_obj.paginator.page_range %}
@@ -102,8 +102,8 @@
                 {% endfor %}
                 
                 {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}" class="pagination-item">Next</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-item">Last &raquo;</a>
+                <a href="?page={{ page_obj.next_page_number }}" class="pagination-item">Siguiente</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="pagination-item">Última &raquo;</a>
                 {% endif %}
             </div>
         </div>
@@ -114,8 +114,8 @@
 <!-- Other Categories Section -->
 <section class="section" style="background-color: var(--gray-50);">
     <div class="container">
-        <h2 class="section-title">Explore Other Categories</h2>
-        <p class="section-subtitle">Discover more gaming events that match your interests</p>
+        <h2 class="section-title">Explorar Otras Categorías</h2>
+        <p class="section-subtitle">Descubre más eventos que coincidan con tus intereses</p>
         
         <div class="categories-grid">
             {% for cat in categories %}
@@ -138,32 +138,32 @@
 <div class="container">
     <section class="newsletter">
         <div class="newsletter-content">
-            <h2 class="newsletter-title">Stay Updated</h2>
-            <p class="newsletter-description">Get notified about the latest {{ category.name }} events, exclusive offers, and gaming community updates.</p>
+            <h2 class="newsletter-title">Mantente Actualizado</h2>
+            <p class="newsletter-description">Recibe notificaciones sobre los últimos eventos de {{ category.name }}, ofertas exclusivas y novedades de la comunidad.</p>
             
             <div class="newsletter-features">
                 <div class="newsletter-feature">
                     <i class="bi bi-check-circle"></i>
-                    <span>Weekly event recommendations</span>
+                    <span>Recomendaciones semanales de eventos</span>
                 </div>
                 <div class="newsletter-feature">
                     <i class="bi bi-check-circle"></i>
-                    <span>Early access to tickets</span>
+                    <span>Acceso anticipado a entradas</span>
                 </div>
                 <div class="newsletter-feature">
                     <i class="bi bi-check-circle"></i>
-                    <span>Gaming community news</span>
+                    <span>Noticias de la comunidad</span>
                 </div>
                 <div class="newsletter-feature">
                     <i class="bi bi-check-circle"></i>
-                    <span>Exclusive discounts</span>
+                    <span>Descuentos exclusivos</span>
                 </div>
             </div>
         </div>
         
         <form class="newsletter-form">
-            <input type="email" class="newsletter-input" placeholder="Enter your email address" required>
-            <button type="submit" class="newsletter-button">Subscribe</button>
+            <input type="email" class="newsletter-input" placeholder="Ingresa tu correo electrónico" required>
+            <button type="submit" class="newsletter-button">Suscribirse</button>
         </form>
     </section>
 </div>
@@ -295,4 +295,4 @@
         }
     });
 </script>
-{% endblock %} 
+{% endblock %}
