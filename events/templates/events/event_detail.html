@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ event.title }} - GameBuzz{% endblock %}
+{% block title %}{{ event.title }} - PassClub{% endblock %}
 
 {% block content %}
 <!-- Event Hero Section -->
@@ -280,7 +280,7 @@ function shareEvent() {
     if (navigator.share) {
         navigator.share({
             title: '{{ event.title }}',
-            text: 'Check out this amazing gaming event!',
+            text: 'Check out this amazing event!',
             url: window.location.href
         });
     } else {
@@ -296,7 +296,7 @@ function shareToFacebook() {
 
 function shareToTwitter() {
     const url = encodeURIComponent(window.location.href);
-    const text = encodeURIComponent('Check out this amazing gaming event: {{ event.title }}');
+    const text = encodeURIComponent('Check out this amazing event: {{ event.title }}');
     window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
 }
 

@@ -248,8 +248,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Unfold Admin Configuration
 UNFOLD = {
-    "SITE_TITLE": "GameBuzz Admin",
-    "SITE_HEADER": "GameBuzz",
+    "SITE_TITLE": "PassClub Admin",
+    "SITE_HEADER": "PassClub",
     "SITE_URL": "/",
     "SITE_ICON": None,
     "SITE_LOGO": None,

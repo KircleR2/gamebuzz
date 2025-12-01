@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}GameBuzz - Discover Amazing Gaming Events{% endblock %}</title>
+    <title>{% block title %}PassClub - Discover Amazing Events{% endblock %}</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- GameBuzz CSS -->
+    <!-- PassClub CSS -->
     <link rel="stylesheet" href="{% static 'css/gamebuzz.css' %}">
     
     {% block extra_css %}{% endblock %}
@@ -24,7 +24,7 @@
     <header class="header">
         <div class="container">
             <!-- Logo -->
-            <a href="{% url 'event_list' %}" class="logo">GameBuzz</a>
+            <a href="{% url 'event_list' %}" class="logo">PassClub</a>
             
             <!-- Navigation -->
             <nav class="nav">
@@ -66,8 +66,8 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-section">
-                    <h3>GameBuzz</h3>
-                    <p class="text-gray-600 mb-4">Your ultimate destination for discovering and connecting with amazing gaming events worldwide.</p>
+                    <h3>PassClub</h3>
+                    <p class="text-gray-600 mb-4">Your ultimate destination for discovering and connecting with amazing events worldwide.</p>
                     <div class="flex gap-4">
                         <a href="#" class="text-gray-400 hover:text-primary-blue"><i class="bi bi-facebook"></i></a>
                         <a href="#" class="text-gray-400 hover:text-primary-blue"><i class="bi bi-twitter"></i></a>
@@ -116,12 +116,12 @@
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2024 GameBuzz. All rights reserved. | <a href="#" class="text-gray-600 hover:text-primary-blue">Privacy Policy</a> | <a href="#" class="text-gray-600 hover:text-primary-blue">Terms of Service</a></p>
+                <p>&copy; 2024 PassClub. All rights reserved. | <a href="#" class="text-gray-600 hover:text-primary-blue">Privacy Policy</a> | <a href="#" class="text-gray-600 hover:text-primary-blue">Terms of Service</a></p>
             </div>
         </div>
     </footer>
 
-    <!-- GameBuzz JavaScript -->
+    <!-- PassClub JavaScript -->
     <script src="{% static 'js/gamebuzz.js' %}"></script>
     
     <!-- Handle broken images with fallback -->

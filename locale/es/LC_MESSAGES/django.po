@@ -1,14 +1,14 @@
-# Spanish translations for GameBuzz.
-# Copyright (C) 2025 GameBuzz
-# This file is distributed under the same license as the GameBuzz package.
+# Spanish translations for PassClub.
+# Copyright (C) 2025 PassClub
+# This file is distributed under the same license as the PassClub package.
 msgid ""
 msgstr ""
-"Project-Id-Version: GameBuzz 1.0\n"
+"Project-Id-Version: PassClub 1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-06-27 13:44+0000\n"
 "PO-Revision-Date: 2025-06-27 13:45+0000\n"
-"Last-Translator: GameBuzz Team <info@gamebuzz.com>\n"
-"Language-Team: Spanish <es@gamebuzz.com>\n"
+"Last-Translator: PassClub Team <info@passclub.com>\n"
+"Language-Team: Spanish <es@passclub.com>\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,8 +23,8 @@ msgid "English"
 msgstr "Inglés"
 
 # Template translations
-msgid "GameBuzz - Discover Amazing Gaming Events"
-msgstr "GameBuzz - Descubre Increíbles Eventos de Juegos"
+msgid "PassClub - Discover Amazing Events"
+msgstr "PassClub - Descubre Increíbles Eventos"
 
 msgid "Discover Amazing Gaming Events"
 msgstr "Descubre Increíbles Eventos de Juegos"
@@ -150,14 +150,14 @@ msgid "Terms of Service"
 msgstr "Términos de Servicio"
 
 # Admin translations
-msgid "GameBuzz Admin"
-msgstr "Administración de GameBuzz"
+msgid "PassClub Admin"
+msgstr "Administración de PassClub"
 
-msgid "Welcome to the GameBuzz Admin!"
-msgstr "¡Bienvenido al Panel de Administración de GameBuzz!"
+msgid "Welcome to the PassClub Admin!"
+msgstr "¡Bienvenido al Panel de Administración de PassClub!"
 
-msgid "GameBuzz Home"
-msgstr "Inicio de GameBuzz"
+msgid "PassClub Home"
+msgstr "Inicio de PassClub"
 
 # Model verbose names
 msgid "Category"

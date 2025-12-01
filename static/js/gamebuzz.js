@@ -1,4 +1,4 @@
-// GameBuzz JavaScript
+// PassClub JavaScript
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize all components
     initSearch();
