@@ -4,10 +4,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
 import json
+import logging
 from .models import Event, Category, NewsletterSubscriber, TicketType, Order, OrderItem
 from django.utils import timezone
 from django.db import models
 from django.shortcuts import get_object_or_404
+from .services.cobalt_payment import CobaltPaymentGateway, CobaltPaymentError
+
+logger = logging.getLogger(__name__)
 
 class EventListView(TemplateView):
     template_name = "events/event_list.html"
@@ -210,7 +214,7 @@ class EventCheckoutView(TemplateView):
         return context
     
     def post(self, request, *args, **kwargs):
-        """Handle checkout form submission"""
+        """Handle checkout form submission with Cobalt payment processing"""
         try:
             event = get_object_or_404(Event, slug=self.kwargs['slug'], status='published')
             
@@ -223,6 +227,25 @@ class EventCheckoutView(TemplateView):
                 return JsonResponse({
                     'success': False,
                     'message': 'Nombre y correo electrónico son requeridos.'
+                }, status=400)
+            
+            # Get payment info
+            card_number = request.POST.get('card_number', '').replace(' ', '').strip()
+            card_exp = request.POST.get('card_exp', '').strip()
+            card_cvv = request.POST.get('card_cvv', '').strip()
+            card_holder = request.POST.get('card_holder', '').strip()
+            
+            if not card_number or not card_exp or not card_cvv or not card_holder:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Todos los datos de la tarjeta son requeridos.'
+                }, status=400)
+            
+            # Validate card number length
+            if len(card_number) < 13 or len(card_number) > 19:
+                return JsonResponse({
+                    'success': False,
+                    'message': 'Número de tarjeta inválido.'
                 }, status=400)
             
             # Get ticket selections
@@ -258,36 +281,80 @@ class EventCheckoutView(TemplateView):
                     'message': 'Por favor selecciona al menos una entrada.'
                 }, status=400)
             
-            # Create order
-            order = Order.objects.create(
-                event=event,
-                customer_name=customer_name,
-                customer_email=customer_email,
-                customer_phone=customer_phone,
-                total_amount=total_amount,
-                status='completed'  # For now, assume instant completion
-            )
+            # Convert total to cents for Cobalt API (amount is in dollars, API expects cents)
+            amount_in_cents = int(total_amount * 100)
             
-            # Create order items and update ticket quantities
-            for item in ticket_items:
-                OrderItem.objects.create(
-                    order=order,
-                    ticket_type=item['ticket_type'],
-                    quantity=item['quantity'],
-                    unit_price=item['unit_price'],
-                    subtotal=item['subtotal']
+            # Process payment through Cobalt
+            try:
+                gateway = CobaltPaymentGateway()
+                payment_result = gateway.process_sale(
+                    amount=amount_in_cents,
+                    pan=card_number,
+                    exp_date=card_exp,
+                    cvv2=card_cvv,
+                    card_holder=card_holder
                 )
-                # Update sold count
-                item['ticket_type'].quantity_sold += item['quantity']
-                item['ticket_type'].save()
-            
-            return JsonResponse({
-                'success': True,
-                'message': '¡Compra completada! Te hemos enviado un correo con los detalles.',
-                'order_number': order.order_number
-            })
+                
+                logger.info(f"Cobalt payment result: {payment_result.get('status')} for amount ${total_amount}")
+                
+                if not payment_result.get('success'):
+                    # Payment was denied or failed
+                    status = payment_result.get('status', 'error')
+                    
+                    if status == 'denied':
+                        message = 'El pago fue rechazado por el banco. Por favor verifica los datos de tu tarjeta o intenta con otra.'
+                    elif status == 'refused':
+                        message = 'La transacción fue rechazada. Por favor contacta a tu banco.'
+                    else:
+                        message = payment_result.get('message', 'Error procesando el pago. Por favor intenta de nuevo.')
+                    
+                    return JsonResponse({
+                        'success': False,
+                        'message': message
+                    }, status=400)
+                
+                # Payment successful - create order
+                order = Order.objects.create(
+                    event=event,
+                    customer_name=customer_name,
+                    customer_email=customer_email,
+                    customer_phone=customer_phone,
+                    total_amount=total_amount,
+                    status='completed',
+                    payment_method='cobalt',
+                    payment_reference=f"TX:{payment_result.get('id')} AUTH:{payment_result.get('authorization_number')}"
+                )
+                
+                # Create order items and update ticket quantities
+                for item in ticket_items:
+                    OrderItem.objects.create(
+                        order=order,
+                        ticket_type=item['ticket_type'],
+                        quantity=item['quantity'],
+                        unit_price=item['unit_price'],
+                        subtotal=item['subtotal']
+                    )
+                    # Update sold count
+                    item['ticket_type'].quantity_sold += item['quantity']
+                    item['ticket_type'].save()
+                
+                logger.info(f"Order {order.order_number} created successfully with Cobalt TX:{payment_result.get('id')}")
+                
+                return JsonResponse({
+                    'success': True,
+                    'message': '¡Compra completada! Te hemos enviado un correo con los detalles.',
+                    'order_number': order.order_number
+                })
+                
+            except CobaltPaymentError as e:
+                logger.error(f"Cobalt payment error: {e.message}")
+                return JsonResponse({
+                    'success': False,
+                    'message': e.message
+                }, status=500)
             
         except Exception as e:
+            logger.exception(f"Checkout error: {str(e)}")
             return JsonResponse({
                 'success': False,
                 'message': f'Error al procesar la compra: {str(e)}'

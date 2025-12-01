@@ -109,6 +109,82 @@
                                    style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white;">
                         </div>
                     </div>
+                    
+                    <!-- Payment Information -->
+                    <div class="checkout-section" style="background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                        <h2 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">
+                            <i class="bi bi-credit-card" style="margin-right: 0.5rem;"></i>
+                            Información de Pago
+                        </h2>
+                        
+                        <!-- Card brands accepted -->
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/100px-Visa_Inc._logo.svg.png" alt="Visa" style="height: 24px;">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/100px-Mastercard-logo.svg.png" alt="Mastercard" style="height: 24px;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="card_holder" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Nombre en la tarjeta *</label>
+                            <input type="text" 
+                                   id="card_holder" 
+                                   name="card_holder" 
+                                   required 
+                                   placeholder="NOMBRE APELLIDO"
+                                   autocomplete="cc-name"
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white; text-transform: uppercase;">
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem;">
+                            <label for="card_number" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Número de tarjeta *</label>
+                            <div style="position: relative;">
+                                <input type="text" 
+                                       id="card_number" 
+                                       name="card_number" 
+                                       required 
+                                       placeholder="1234 5678 9012 3456"
+                                       maxlength="19"
+                                       autocomplete="cc-number"
+                                       inputmode="numeric"
+                                       style="width: 100%; padding: 0.75rem 1rem; padding-right: 3rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white; font-family: monospace;">
+                                <i id="card-brand-icon" class="bi bi-credit-card-2-front" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 1.25rem;"></i>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div>
+                                <label for="card_exp" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Fecha de expiración *</label>
+                                <input type="text" 
+                                       id="card_exp" 
+                                       name="card_exp" 
+                                       required 
+                                       placeholder="MM/YY"
+                                       maxlength="5"
+                                       autocomplete="cc-exp"
+                                       inputmode="numeric"
+                                       style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white; font-family: monospace;">
+                            </div>
+                            <div>
+                                <label for="card_cvv" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">CVV *</label>
+                                <div style="position: relative;">
+                                    <input type="text" 
+                                           id="card_cvv" 
+                                           name="card_cvv" 
+                                           required 
+                                           placeholder="123"
+                                           maxlength="4"
+                                           autocomplete="cc-csc"
+                                           inputmode="numeric"
+                                           style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white; font-family: monospace;">
+                                    <i class="bi bi-question-circle" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); cursor: help;" title="Código de 3-4 dígitos en el reverso de tu tarjeta"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 1rem; padding: 0.75rem; background: #F0FDF4; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="bi bi-shield-lock-fill" style="color: #16A34A;"></i>
+                            <span style="font-size: 0.875rem; color: #166534;">Tus datos de pago están protegidos con encriptación SSL</span>
+                        </div>
+                    </div>
                 </form>
             </div>
             
@@ -245,9 +321,40 @@ function updateTotal() {
         selectedTicketsDiv.innerHTML = '<p style="color: var(--gray-500); font-style: italic; text-align: center; padding: 1rem 0;">Selecciona tus entradas</p>';
     }
     
-    // Enable/disable submit button
+    updateSubmitButton();
+}
+
+// Check if payment form is valid
+function isPaymentFormValid() {
+    const cardNumber = document.getElementById('card_number').value.replace(/\s/g, '');
+    const cardExp = document.getElementById('card_exp').value;
+    const cardCvv = document.getElementById('card_cvv').value;
+    const cardHolder = document.getElementById('card_holder').value.trim();
+    
+    return cardNumber.length >= 13 && 
+           cardExp.length === 5 && 
+           cardCvv.length >= 3 && 
+           cardHolder.length > 0;
+}
+
+// Check if tickets are selected
+function hasTicketSelection() {
+    for (const [ticketId, ticket] of Object.entries(ticketPrices)) {
+        const input = document.getElementById('qty_' + ticketId);
+        if (input && parseInt(input.value) > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// Update submit button state
+function updateSubmitButton() {
     const submitBtn = document.getElementById('submit-btn');
-    if (hasSelection) {
+    const hasSelection = hasTicketSelection();
+    const paymentValid = isPaymentFormValid();
+    
+    if (hasSelection && paymentValid) {
         submitBtn.disabled = false;
         submitBtn.style.opacity = '1';
     } else {
@@ -256,13 +363,99 @@ function updateTotal() {
     }
 }
 
+// Format card number with spaces
+function formatCardNumber(input) {
+    let value = input.value.replace(/\s/g, '').replace(/\D/g, '');
+    let formatted = '';
+    for (let i = 0; i < value.length && i < 16; i++) {
+        if (i > 0 && i % 4 === 0) {
+            formatted += ' ';
+        }
+        formatted += value[i];
+    }
+    input.value = formatted;
+    
+    // Detect card brand
+    const cardBrandIcon = document.getElementById('card-brand-icon');
+    if (value.startsWith('4')) {
+        cardBrandIcon.className = 'bi bi-credit-card-2-front';
+        cardBrandIcon.style.color = '#1A1F71'; // Visa blue
+    } else if (value.startsWith('5') || value.startsWith('2')) {
+        cardBrandIcon.className = 'bi bi-credit-card-2-front';
+        cardBrandIcon.style.color = '#EB001B'; // Mastercard red
+    } else {
+        cardBrandIcon.className = 'bi bi-credit-card-2-front';
+        cardBrandIcon.style.color = 'var(--gray-400)';
+    }
+    
+    updateSubmitButton();
+}
+
+// Format expiration date
+function formatExpDate(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '/' + value.substring(2, 4);
+    }
+    input.value = value;
+    updateSubmitButton();
+}
+
+// Format CVV (numbers only)
+function formatCvv(input) {
+    input.value = input.value.replace(/\D/g, '').substring(0, 4);
+    updateSubmitButton();
+}
+
+// Validate card number (basic Luhn check)
+function validateCardNumber(number) {
+    const digits = number.replace(/\s/g, '');
+    if (digits.length < 13 || digits.length > 19) return false;
+    
+    let sum = 0;
+    let isEven = false;
+    
+    for (let i = digits.length - 1; i >= 0; i--) {
+        let digit = parseInt(digits[i]);
+        
+        if (isEven) {
+            digit *= 2;
+            if (digit > 9) {
+                digit -= 9;
+            }
+        }
+        
+        sum += digit;
+        isEven = !isEven;
+    }
+    
+    return sum % 10 === 0;
+}
+
 // Handle form submission
 document.getElementById('checkout-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     
+    // Validate card number
+    const cardNumber = document.getElementById('card_number').value;
+    if (!validateCardNumber(cardNumber)) {
+        showError('El número de tarjeta no es válido');
+        return;
+    }
+    
+    // Validate expiration date
+    const cardExp = document.getElementById('card_exp').value;
+    const [month, year] = cardExp.split('/');
+    const expDate = new Date(2000 + parseInt(year), parseInt(month) - 1);
+    const now = new Date();
+    if (expDate < now) {
+        showError('La tarjeta ha expirado');
+        return;
+    }
+    
     const submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Procesando...';
+    submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Procesando pago...';
     
     try {
         const formData = new FormData(this);
@@ -281,19 +474,66 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
             document.getElementById('order-number').textContent = result.order_number;
             document.getElementById('success-modal').style.display = 'flex';
         } else {
-            alert(result.message);
+            showError(result.message);
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i> Completar Compra';
         }
     } catch (error) {
-        alert('Error al procesar la compra. Por favor intenta de nuevo.');
+        showError('Error al procesar la compra. Por favor intenta de nuevo.');
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i> Completar Compra';
     }
 });
 
-// Initialize
-document.addEventListener('DOMContentLoaded', updateTotal);
+// Show error message
+function showError(message) {
+    // Remove existing error
+    const existingError = document.querySelector('.payment-error');
+    if (existingError) existingError.remove();
+    
+    // Create error element
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'payment-error';
+    errorDiv.style.cssText = 'background: #FEE2E2; color: #DC2626; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;';
+    errorDiv.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${message}`;
+    
+    // Insert before submit button
+    const submitBtn = document.getElementById('submit-btn');
+    submitBtn.parentElement.insertBefore(errorDiv, submitBtn);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => errorDiv.remove(), 5000);
+}
+
+// Initialize event listeners
+document.addEventListener('DOMContentLoaded', function() {
+    updateTotal();
+    
+    // Card number formatting
+    const cardNumberInput = document.getElementById('card_number');
+    cardNumberInput.addEventListener('input', function() {
+        formatCardNumber(this);
+    });
+    
+    // Expiration date formatting
+    const cardExpInput = document.getElementById('card_exp');
+    cardExpInput.addEventListener('input', function() {
+        formatExpDate(this);
+    });
+    
+    // CVV formatting
+    const cardCvvInput = document.getElementById('card_cvv');
+    cardCvvInput.addEventListener('input', function() {
+        formatCvv(this);
+    });
+    
+    // Card holder uppercase
+    const cardHolderInput = document.getElementById('card_holder');
+    cardHolderInput.addEventListener('input', function() {
+        this.value = this.value.toUpperCase();
+        updateSubmitButton();
+    });
+});
 </script>
 
 <style>

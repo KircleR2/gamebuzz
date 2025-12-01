@@ -285,6 +285,12 @@ UNFOLD = {
 LOGIN_REDIRECT_URL = "/dashboard/"
 LOGIN_URL = "/dashboard/login/"
 
+# Cobalt Payment Gateway Configuration
+# Set these environment variables for production, defaults are sandbox for development
+COBALT_HOST = os.environ.get("COBALT_HOST", "https://cbotest.cobalt.tech")
+COBALT_CLIENT_ID = os.environ.get("COBALT_CLIENT_ID", "9edb0211-6402-408f-b891-51dfb469fc45")
+COBALT_CLIENT_SECRET = os.environ.get("COBALT_CLIENT_SECRET", "QMfOv8IDN4DDLRHQjs6Cw9V2jfLMWLmhU1d80LOS")
+
 # Security settings for production
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
