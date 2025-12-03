@@ -101,23 +101,10 @@
                     </ul>
                 </div>
                 
-                <div class="footer-section">
-                    <h3>{% trans "Ciudades Populares" %}</h3>
-                    <ul class="footer-links">
-                        {% for city in popular_cities|slice:":4" %}
-                        <li><a href="#">{{ city.city }}, {{ city.state_province }}</a></li>
-                        {% empty %}
-                        <li><a href="#">{% trans "Los Ángeles, CA" %}</a></li>
-                        <li><a href="#">{% trans "Nueva York, NY" %}</a></li>
-                        <li><a href="#">{% trans "Austin, TX" %}</a></li>
-                        <li><a href="#">{% trans "Seattle, WA" %}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; 2024 PassClub. {% trans "Todos los derechos reservados." %} | <a href="#" class="text-gray-600 hover:text-primary-blue">{% trans "Política de Privacidad" %}</a> | <a href="#" class="text-gray-600 hover:text-primary-blue">{% trans "Términos de Servicio" %}</a></p>
+                <p>&copy; {% now "Y" %} PassClub. {% trans "Todos los derechos reservados." %} | <a href="#" class="text-gray-600 hover:text-primary-blue">{% trans "Política de Privacidad" %}</a> | <a href="#" class="text-gray-600 hover:text-primary-blue">{% trans "Términos de Servicio" %}</a></p>
             </div>
         </div>
     </footer>
