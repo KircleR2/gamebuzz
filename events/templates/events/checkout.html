@@ -87,7 +87,8 @@
                                    name="customer_name" 
                                    required 
                                    placeholder="Tu nombre completo"
-                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white;">
+                                   autocomplete="name"
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; touch-action: manipulation; -webkit-appearance: none;">
                         </div>
                         
                         <div style="margin-bottom: 1rem;">
@@ -97,7 +98,8 @@
                                    name="customer_email" 
                                    required 
                                    placeholder="tu@email.com"
-                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white;">
+                                   autocomplete="email"
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; touch-action: manipulation; -webkit-appearance: none;">
                             <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">Enviaremos la confirmación a este correo</p>
                         </div>
                         
@@ -107,7 +109,8 @@
                                    id="customer_phone" 
                                    name="customer_phone" 
                                    placeholder="+1 (555) 000-0000"
-                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white;">
+                                   autocomplete="tel"
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; touch-action: manipulation; -webkit-appearance: none;">
                         </div>
                     </div>
                     
@@ -132,7 +135,7 @@
                                    required 
                                    placeholder="NOMBRE APELLIDO"
                                    autocomplete="cc-name"
-                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white; text-transform: uppercase;">
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; text-transform: uppercase; touch-action: manipulation; -webkit-appearance: none;">
                         </div>
                         
                         <div style="margin-bottom: 1rem;">
@@ -146,7 +149,7 @@
                                        maxlength="19"
                                        autocomplete="cc-number"
                                        inputmode="numeric"
-                                       style="width: 100%; padding: 0.75rem 1rem; padding-right: 3rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white; font-family: monospace;">
+                                       style="width: 100%; padding: 0.75rem 1rem; padding-right: 3rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
                                 <i id="card-brand-icon" class="bi bi-credit-card-2-front" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 1.25rem;"></i>
                             </div>
                         </div>
@@ -162,7 +165,7 @@
                                        maxlength="5"
                                        autocomplete="cc-exp"
                                        inputmode="numeric"
-                                       style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white; font-family: monospace;">
+                                       style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
                             </div>
                             <div>
                                 <label for="card_cvv" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">CVV *</label>
@@ -175,7 +178,7 @@
                                            maxlength="4"
                                            autocomplete="cc-csc"
                                            inputmode="numeric"
-                                           style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; background: white; font-family: monospace;">
+                                           style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
                                     <i class="bi bi-question-circle" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); cursor: help;" title="Código de 3-4 dígitos en el reverso de tu tarjeta"></i>
                                 </div>
                             </div>
@@ -674,6 +677,30 @@ input[type="email"],
 input[type="tel"],
 input[type="number"] {
     font-size: 16px !important;
+}
+
+/* Fix for Chrome Android - ensure inputs receive touch events */
+input:not([readonly]),
+textarea,
+select {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-user-select: text;
+    user-select: text;
+}
+
+/* Ensure form sections don't block touch events */
+.checkout-section {
+    position: relative;
+    z-index: 1;
+}
+
+/* Make sure inputs are above any potential overlays */
+#checkout-form input:not([readonly]),
+#checkout-form textarea,
+#checkout-form select {
+    position: relative;
+    z-index: 2;
 }
 
 @media (max-width: 768px) {
