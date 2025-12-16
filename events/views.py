@@ -197,6 +197,24 @@ class NewsletterSubscriptionView(View):
             }, status=500)
 
 
+class OrderSummaryView(TemplateView):
+    """Display order summary after successful purchase"""
+    template_name = "events/order_summary.html"
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Get the order by order_number
+        order_number = self.kwargs.get('order_number')
+        order = get_object_or_404(Order, order_number=order_number)
+        
+        context['order'] = order
+        context['event'] = order.event
+        context['order_items'] = order.items.select_related('ticket_type').all()
+        
+        return context
+
+
 class EventCheckoutView(TemplateView):
     """Handle ticket checkout for an event"""
     template_name = "events/checkout.html"

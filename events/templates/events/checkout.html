@@ -253,16 +253,24 @@
 
 <!-- Success Modal -->
 <div id="success-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 16px; padding: 2rem; max-width: 400px; text-align: center;">
+    <div style="background: white; border-radius: 16px; padding: 2rem; max-width: 400px; text-align: center; margin: 1rem;">
         <div style="width: 64px; height: 64px; background: #10B981; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
             <i class="bi bi-check-lg" style="color: white; font-size: 2rem;"></i>
         </div>
         <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">¡Compra Exitosa!</h3>
         <p style="color: var(--gray-600); margin-bottom: 1.5rem;">Tu orden ha sido procesada correctamente. Recibirás un correo con los detalles.</p>
-        <p style="font-weight: 600; margin-bottom: 1rem;">Número de orden: <span id="order-number" style="color: var(--primary-blue);"></span></p>
-        <a href="{% url 'event_list' %}" class="btn btn-primary" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--primary-blue); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
-            Volver al inicio
-        </a>
+        <p style="font-weight: 600; margin-bottom: 1.5rem;">Número de orden: <span id="order-number" style="color: var(--primary-blue);"></span></p>
+        
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            <a id="view-summary-btn" href="#" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.875rem 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 14px rgba(102, 126, 234, 0.4);">
+                <i class="bi bi-receipt"></i>
+                Ver Resumen de Compra
+            </a>
+            <a href="{% url 'event_list' %}" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: white; color: #374151; text-decoration: none; border-radius: 10px; font-weight: 600; border: 2px solid #e5e7eb;">
+                <i class="bi bi-house-door"></i>
+                Volver al Inicio
+            </a>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -528,6 +536,7 @@ function handleFormSubmit(e) {
         if (result.success) {
             // Show success modal
             document.getElementById('order-number').textContent = result.order_number;
+            document.getElementById('view-summary-btn').href = '/order/' + result.order_number + '/';
             document.getElementById('success-modal').style.display = 'flex';
         } else {
             showError(result.message);
