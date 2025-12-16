@@ -46,20 +46,21 @@
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     {% if not ticket.is_sold_out %}
-                                    <button type="button" class="qty-btn qty-decrease" data-ticket-id="{{ ticket.id }}" style="width: 32px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: white; cursor: pointer; font-size: 1.25rem;">−</button>
-                                    <input type="number" 
+                                    <button type="button" class="qty-btn qty-decrease" data-ticket-id="{{ ticket.id }}" style="width: 44px; height: 44px; min-width: 44px; border: 1px solid #E5E7EB; border-radius: 8px; background: white; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0.1); touch-action: manipulation; user-select: none;">−</button>
+                                    <input type="text" 
+                                           inputmode="numeric"
+                                           pattern="[0-9]*"
                                            name="ticket_{{ ticket.id }}" 
                                            id="qty_{{ ticket.id }}" 
                                            value="0" 
-                                           min="0" 
-                                           max="{{ ticket.max_per_order }}"
                                            data-ticket-id="{{ ticket.id }}"
                                            data-price="{{ ticket.price }}"
                                            data-max="{{ ticket.max_per_order }}"
                                            data-remaining="{{ ticket.quantity_remaining }}"
                                            class="qty-input" 
-                                           style="width: 50px; text-align: center; border: 1px solid #E5E7EB; border-radius: 6px; padding: 0.5rem; font-weight: 600;">
-                                    <button type="button" class="qty-btn qty-increase" data-ticket-id="{{ ticket.id }}" style="width: 32px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: white; cursor: pointer; font-size: 1.25rem;">+</button>
+                                           readonly
+                                           style="width: 50px; height: 44px; text-align: center; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0.5rem; font-weight: 600; font-size: 1.125rem; -webkit-appearance: none; -moz-appearance: textfield;">
+                                    <button type="button" class="qty-btn qty-increase" data-ticket-id="{{ ticket.id }}" style="width: 44px; height: 44px; min-width: 44px; border: 1px solid #E5E7EB; border-radius: 8px; background: white; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0.1); touch-action: manipulation; user-select: none;">+</button>
                                     {% endif %}
                                 </div>
                             </div>
@@ -545,15 +546,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Initialize total
         updateTotal();
         
-        // Set up ticket quantity buttons using event delegation
-        document.addEventListener('click', function(e) {
+        // Handle quantity button clicks (works for both click and touch)
+        function handleQuantityButton(e) {
             var target = e.target;
+            
+            // Prevent default to avoid double-firing on touch devices
+            if (e.type === 'touchend') {
+                e.preventDefault();
+            }
             
             // Handle decrease button
             if (target.classList && target.classList.contains('qty-decrease')) {
                 var ticketId = target.getAttribute('data-ticket-id');
                 if (ticketId) {
                     updateQuantity(parseInt(ticketId), -1);
+                    // Visual feedback
+                    target.style.background = '#f3f4f6';
+                    setTimeout(function() { target.style.background = 'white'; }, 100);
                 }
             }
             
@@ -562,9 +571,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 var ticketId = target.getAttribute('data-ticket-id');
                 if (ticketId) {
                     updateQuantity(parseInt(ticketId), 1);
+                    // Visual feedback
+                    target.style.background = '#f3f4f6';
+                    setTimeout(function() { target.style.background = 'white'; }, 100);
                 }
             }
-        });
+        }
+        
+        // Set up ticket quantity buttons using event delegation
+        // Use both click and touchend for maximum compatibility
+        document.addEventListener('click', handleQuantityButton);
+        document.addEventListener('touchend', handleQuantityButton);
         
         // Set up quantity input listeners
         var qtyInputs = document.querySelectorAll('.qty-input');
@@ -628,6 +645,37 @@ document.addEventListener('DOMContentLoaded', function() {
     to { transform: rotate(360deg); }
 }
 
+/* Quantity buttons - ensure good touch targets */
+.qty-btn {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.qty-btn:active {
+    background: #f3f4f6 !important;
+    transform: scale(0.95);
+}
+
+/* Remove number input spinners */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.qty-input {
+    -moz-appearance: textfield;
+}
+
+/* Prevent zoom on input focus on iOS */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+input[type="number"] {
+    font-size: 16px !important;
+}
+
 @media (max-width: 768px) {
     .checkout-grid {
         grid-template-columns: 1fr !important;
@@ -635,6 +683,31 @@ document.addEventListener('DOMContentLoaded', function() {
     .order-summary {
         position: relative !important;
         top: 0 !important;
+    }
+    
+    /* Larger touch targets on mobile */
+    .qty-btn {
+        width: 48px !important;
+        height: 48px !important;
+        min-width: 48px !important;
+        font-size: 1.75rem !important;
+    }
+    
+    .qty-input {
+        height: 48px !important;
+        font-size: 1.25rem !important;
+    }
+    
+    /* Better spacing on mobile */
+    .ticket-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+    }
+    
+    .ticket-row > div:last-child {
+        width: 100%;
+        justify-content: center !important;
     }
 }
 </style>
