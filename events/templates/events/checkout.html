@@ -46,20 +46,20 @@
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     {% if not ticket.is_sold_out %}
-                                    <button type="button" class="qty-btn" onclick="updateQuantity({{ ticket.id }}, -1)" style="width: 32px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: white; cursor: pointer; font-size: 1.25rem;">−</button>
+                                    <button type="button" class="qty-btn qty-decrease" data-ticket-id="{{ ticket.id }}" style="width: 32px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: white; cursor: pointer; font-size: 1.25rem;">−</button>
                                     <input type="number" 
                                            name="ticket_{{ ticket.id }}" 
                                            id="qty_{{ ticket.id }}" 
                                            value="0" 
                                            min="0" 
                                            max="{{ ticket.max_per_order }}"
+                                           data-ticket-id="{{ ticket.id }}"
                                            data-price="{{ ticket.price }}"
                                            data-max="{{ ticket.max_per_order }}"
                                            data-remaining="{{ ticket.quantity_remaining }}"
                                            class="qty-input" 
-                                           style="width: 50px; text-align: center; border: 1px solid #E5E7EB; border-radius: 6px; padding: 0.5rem; font-weight: 600;"
-                                           onchange="updateTotal()">
-                                    <button type="button" class="qty-btn" onclick="updateQuantity({{ ticket.id }}, 1)" style="width: 32px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: white; cursor: pointer; font-size: 1.25rem;">+</button>
+                                           style="width: 50px; text-align: center; border: 1px solid #E5E7EB; border-radius: 6px; padding: 0.5rem; font-weight: 600;">
+                                    <button type="button" class="qty-btn qty-increase" data-ticket-id="{{ ticket.id }}" style="width: 32px; height: 32px; border: 1px solid #E5E7EB; border-radius: 6px; background: white; cursor: pointer; font-size: 1.25rem;">+</button>
                                     {% endif %}
                                 </div>
                             </div>
@@ -265,22 +265,29 @@
 
 {% block extra_js %}
 <script>
-const ticketPrices = {};
+// Ticket data with properly escaped names
+var ticketPrices = {};
 {% for ticket in ticket_types %}
 ticketPrices[{{ ticket.id }}] = {
     price: {{ ticket.price }},
-    name: "{{ ticket.name }}",
+    name: "{{ ticket.name|escapejs }}",
     max: {{ ticket.max_per_order }},
     remaining: {{ ticket.quantity_remaining }}
 };
 {% endfor %}
 
+// Update quantity for a ticket
 function updateQuantity(ticketId, delta) {
-    const input = document.getElementById('qty_' + ticketId);
-    let currentValue = parseInt(input.value) || 0;
-    let newValue = currentValue + delta;
+    var input = document.getElementById('qty_' + ticketId);
+    if (!input) return;
     
-    const max = Math.min(ticketPrices[ticketId].max, ticketPrices[ticketId].remaining);
+    var currentValue = parseInt(input.value) || 0;
+    var newValue = currentValue + delta;
+    
+    var ticketData = ticketPrices[ticketId];
+    if (!ticketData) return;
+    
+    var max = Math.min(ticketData.max, ticketData.remaining);
     
     if (newValue < 0) newValue = 0;
     if (newValue > max) newValue = max;
@@ -290,31 +297,32 @@ function updateQuantity(ticketId, delta) {
 }
 
 function updateTotal() {
-    let total = 0;
-    let selectedTicketsHtml = '';
-    let hasSelection = false;
+    var total = 0;
+    var selectedTicketsHtml = '';
+    var hasSelection = false;
     
-    for (const [ticketId, ticket] of Object.entries(ticketPrices)) {
-        const input = document.getElementById('qty_' + ticketId);
-        if (input) {
-            const quantity = parseInt(input.value) || 0;
-            if (quantity > 0) {
-                hasSelection = true;
-                const subtotal = quantity * ticket.price;
-                total += subtotal;
-                selectedTicketsHtml += `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
-                        <span>${quantity}x ${ticket.name}</span>
-                        <span style="font-weight: 600;">$${subtotal.toFixed(2)}</span>
-                    </div>
-                `;
+    for (var ticketId in ticketPrices) {
+        if (ticketPrices.hasOwnProperty(ticketId)) {
+            var ticket = ticketPrices[ticketId];
+            var input = document.getElementById('qty_' + ticketId);
+            if (input) {
+                var quantity = parseInt(input.value) || 0;
+                if (quantity > 0) {
+                    hasSelection = true;
+                    var subtotal = quantity * ticket.price;
+                    total += subtotal;
+                    selectedTicketsHtml += '<div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">' +
+                        '<span>' + quantity + 'x ' + ticket.name + '</span>' +
+                        '<span style="font-weight: 600;">$' + subtotal.toFixed(2) + '</span>' +
+                        '</div>';
+                }
             }
         }
     }
     
     document.getElementById('order-total').textContent = '$' + total.toFixed(2);
     
-    const selectedTicketsDiv = document.getElementById('selected-tickets');
+    var selectedTicketsDiv = document.getElementById('selected-tickets');
     if (hasSelection) {
         selectedTicketsDiv.innerHTML = selectedTicketsHtml;
     } else {
@@ -326,10 +334,17 @@ function updateTotal() {
 
 // Check if payment form is valid
 function isPaymentFormValid() {
-    const cardNumber = document.getElementById('card_number').value.replace(/\s/g, '');
-    const cardExp = document.getElementById('card_exp').value;
-    const cardCvv = document.getElementById('card_cvv').value;
-    const cardHolder = document.getElementById('card_holder').value.trim();
+    var cardNumberEl = document.getElementById('card_number');
+    var cardExpEl = document.getElementById('card_exp');
+    var cardCvvEl = document.getElementById('card_cvv');
+    var cardHolderEl = document.getElementById('card_holder');
+    
+    if (!cardNumberEl || !cardExpEl || !cardCvvEl || !cardHolderEl) return false;
+    
+    var cardNumber = cardNumberEl.value.replace(/\s/g, '');
+    var cardExp = cardExpEl.value;
+    var cardCvv = cardCvvEl.value;
+    var cardHolder = cardHolderEl.value.trim();
     
     return cardNumber.length >= 13 && 
            cardExp.length === 5 && 
@@ -339,10 +354,12 @@ function isPaymentFormValid() {
 
 // Check if tickets are selected
 function hasTicketSelection() {
-    for (const [ticketId, ticket] of Object.entries(ticketPrices)) {
-        const input = document.getElementById('qty_' + ticketId);
-        if (input && parseInt(input.value) > 0) {
-            return true;
+    for (var ticketId in ticketPrices) {
+        if (ticketPrices.hasOwnProperty(ticketId)) {
+            var input = document.getElementById('qty_' + ticketId);
+            if (input && parseInt(input.value) > 0) {
+                return true;
+            }
         }
     }
     return false;
@@ -350,9 +367,11 @@ function hasTicketSelection() {
 
 // Update submit button state
 function updateSubmitButton() {
-    const submitBtn = document.getElementById('submit-btn');
-    const hasSelection = hasTicketSelection();
-    const paymentValid = isPaymentFormValid();
+    var submitBtn = document.getElementById('submit-btn');
+    if (!submitBtn) return;
+    
+    var hasSelection = hasTicketSelection();
+    var paymentValid = isPaymentFormValid();
     
     if (hasSelection && paymentValid) {
         submitBtn.disabled = false;
@@ -365,9 +384,9 @@ function updateSubmitButton() {
 
 // Format card number with spaces
 function formatCardNumber(input) {
-    let value = input.value.replace(/\s/g, '').replace(/\D/g, '');
-    let formatted = '';
-    for (let i = 0; i < value.length && i < 16; i++) {
+    var value = input.value.replace(/\s/g, '').replace(/\D/g, '');
+    var formatted = '';
+    for (var i = 0; i < value.length && i < 16; i++) {
         if (i > 0 && i % 4 === 0) {
             formatted += ' ';
         }
@@ -376,16 +395,18 @@ function formatCardNumber(input) {
     input.value = formatted;
     
     // Detect card brand
-    const cardBrandIcon = document.getElementById('card-brand-icon');
-    if (value.startsWith('4')) {
-        cardBrandIcon.className = 'bi bi-credit-card-2-front';
-        cardBrandIcon.style.color = '#1A1F71'; // Visa blue
-    } else if (value.startsWith('5') || value.startsWith('2')) {
-        cardBrandIcon.className = 'bi bi-credit-card-2-front';
-        cardBrandIcon.style.color = '#EB001B'; // Mastercard red
-    } else {
-        cardBrandIcon.className = 'bi bi-credit-card-2-front';
-        cardBrandIcon.style.color = 'var(--gray-400)';
+    var cardBrandIcon = document.getElementById('card-brand-icon');
+    if (cardBrandIcon) {
+        if (value.indexOf('4') === 0) {
+            cardBrandIcon.className = 'bi bi-credit-card-2-front';
+            cardBrandIcon.style.color = '#1A1F71'; // Visa blue
+        } else if (value.indexOf('5') === 0 || value.indexOf('2') === 0) {
+            cardBrandIcon.className = 'bi bi-credit-card-2-front';
+            cardBrandIcon.style.color = '#EB001B'; // Mastercard red
+        } else {
+            cardBrandIcon.className = 'bi bi-credit-card-2-front';
+            cardBrandIcon.style.color = 'var(--gray-400)';
+        }
     }
     
     updateSubmitButton();
@@ -393,7 +414,7 @@ function formatCardNumber(input) {
 
 // Format expiration date
 function formatExpDate(input) {
-    let value = input.value.replace(/\D/g, '');
+    var value = input.value.replace(/\D/g, '');
     if (value.length >= 2) {
         value = value.substring(0, 2) + '/' + value.substring(2, 4);
     }
@@ -409,14 +430,14 @@ function formatCvv(input) {
 
 // Validate card number (basic Luhn check)
 function validateCardNumber(number) {
-    const digits = number.replace(/\s/g, '');
+    var digits = number.replace(/\s/g, '');
     if (digits.length < 13 || digits.length > 19) return false;
     
-    let sum = 0;
-    let isEven = false;
+    var sum = 0;
+    var isEven = false;
     
-    for (let i = digits.length - 1; i >= 0; i--) {
-        let digit = parseInt(digits[i]);
+    for (var i = digits.length - 1; i >= 0; i--) {
+        var digit = parseInt(digits[i]);
         
         if (isEven) {
             digit *= 2;
@@ -432,43 +453,74 @@ function validateCardNumber(number) {
     return sum % 10 === 0;
 }
 
+// Show error message
+function showError(message) {
+    // Remove existing error
+    var existingError = document.querySelector('.payment-error');
+    if (existingError) existingError.remove();
+    
+    // Create error element
+    var errorDiv = document.createElement('div');
+    errorDiv.className = 'payment-error';
+    errorDiv.style.cssText = 'background: #FEE2E2; color: #DC2626; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;';
+    errorDiv.innerHTML = '<i class="bi bi-exclamation-circle"></i> ' + message;
+    
+    // Insert before submit button
+    var submitBtn = document.getElementById('submit-btn');
+    if (submitBtn && submitBtn.parentElement) {
+        submitBtn.parentElement.insertBefore(errorDiv, submitBtn);
+    }
+    
+    // Auto remove after 5 seconds
+    setTimeout(function() { 
+        if (errorDiv.parentElement) errorDiv.remove(); 
+    }, 5000);
+}
+
 // Handle form submission
-document.getElementById('checkout-form').addEventListener('submit', async function(e) {
+function handleFormSubmit(e) {
     e.preventDefault();
     
     // Validate card number
-    const cardNumber = document.getElementById('card_number').value;
+    var cardNumber = document.getElementById('card_number').value;
     if (!validateCardNumber(cardNumber)) {
         showError('El número de tarjeta no es válido');
         return;
     }
     
     // Validate expiration date
-    const cardExp = document.getElementById('card_exp').value;
-    const [month, year] = cardExp.split('/');
-    const expDate = new Date(2000 + parseInt(year), parseInt(month) - 1);
-    const now = new Date();
+    var cardExp = document.getElementById('card_exp').value;
+    var parts = cardExp.split('/');
+    if (parts.length !== 2) {
+        showError('Formato de fecha inválido');
+        return;
+    }
+    var month = parseInt(parts[0]);
+    var year = parseInt(parts[1]);
+    var expDate = new Date(2000 + year, month - 1);
+    var now = new Date();
     if (expDate < now) {
         showError('La tarjeta ha expirado');
         return;
     }
     
-    const submitBtn = document.getElementById('submit-btn');
+    var submitBtn = document.getElementById('submit-btn');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Procesando pago...';
     
-    try {
-        const formData = new FormData(this);
-        const response = await fetch(window.location.href, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        });
-        
-        const result = await response.json();
-        
+    var formData = new FormData(document.getElementById('checkout-form'));
+    
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(function(response) {
+        return response.json();
+    })
+    .then(function(result) {
         if (result.success) {
             // Show success modal
             document.getElementById('order-number').textContent = result.order_number;
@@ -478,61 +530,92 @@ document.getElementById('checkout-form').addEventListener('submit', async functi
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i> Completar Compra';
         }
-    } catch (error) {
+    })
+    .catch(function(error) {
+        console.error('Payment error:', error);
         showError('Error al procesar la compra. Por favor intenta de nuevo.');
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i> Completar Compra';
-    }
-});
-
-// Show error message
-function showError(message) {
-    // Remove existing error
-    const existingError = document.querySelector('.payment-error');
-    if (existingError) existingError.remove();
-    
-    // Create error element
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'payment-error';
-    errorDiv.style.cssText = 'background: #FEE2E2; color: #DC2626; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;';
-    errorDiv.innerHTML = `<i class="bi bi-exclamation-circle"></i> ${message}`;
-    
-    // Insert before submit button
-    const submitBtn = document.getElementById('submit-btn');
-    submitBtn.parentElement.insertBefore(errorDiv, submitBtn);
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => errorDiv.remove(), 5000);
+    });
 }
 
-// Initialize event listeners
+// Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
-    updateTotal();
-    
-    // Card number formatting
-    const cardNumberInput = document.getElementById('card_number');
-    cardNumberInput.addEventListener('input', function() {
-        formatCardNumber(this);
-    });
-    
-    // Expiration date formatting
-    const cardExpInput = document.getElementById('card_exp');
-    cardExpInput.addEventListener('input', function() {
-        formatExpDate(this);
-    });
-    
-    // CVV formatting
-    const cardCvvInput = document.getElementById('card_cvv');
-    cardCvvInput.addEventListener('input', function() {
-        formatCvv(this);
-    });
-    
-    // Card holder uppercase
-    const cardHolderInput = document.getElementById('card_holder');
-    cardHolderInput.addEventListener('input', function() {
-        this.value = this.value.toUpperCase();
-        updateSubmitButton();
-    });
+    try {
+        // Initialize total
+        updateTotal();
+        
+        // Set up ticket quantity buttons using event delegation
+        document.addEventListener('click', function(e) {
+            var target = e.target;
+            
+            // Handle decrease button
+            if (target.classList && target.classList.contains('qty-decrease')) {
+                var ticketId = target.getAttribute('data-ticket-id');
+                if (ticketId) {
+                    updateQuantity(parseInt(ticketId), -1);
+                }
+            }
+            
+            // Handle increase button
+            if (target.classList && target.classList.contains('qty-increase')) {
+                var ticketId = target.getAttribute('data-ticket-id');
+                if (ticketId) {
+                    updateQuantity(parseInt(ticketId), 1);
+                }
+            }
+        });
+        
+        // Set up quantity input listeners
+        var qtyInputs = document.querySelectorAll('.qty-input');
+        for (var i = 0; i < qtyInputs.length; i++) {
+            qtyInputs[i].addEventListener('input', updateTotal);
+            qtyInputs[i].addEventListener('change', updateTotal);
+        }
+        
+        // Card number formatting
+        var cardNumberInput = document.getElementById('card_number');
+        if (cardNumberInput) {
+            cardNumberInput.addEventListener('input', function() {
+                formatCardNumber(this);
+            });
+        }
+        
+        // Expiration date formatting
+        var cardExpInput = document.getElementById('card_exp');
+        if (cardExpInput) {
+            cardExpInput.addEventListener('input', function() {
+                formatExpDate(this);
+            });
+        }
+        
+        // CVV formatting
+        var cardCvvInput = document.getElementById('card_cvv');
+        if (cardCvvInput) {
+            cardCvvInput.addEventListener('input', function() {
+                formatCvv(this);
+            });
+        }
+        
+        // Card holder uppercase
+        var cardHolderInput = document.getElementById('card_holder');
+        if (cardHolderInput) {
+            cardHolderInput.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+                updateSubmitButton();
+            });
+        }
+        
+        // Form submission
+        var checkoutForm = document.getElementById('checkout-form');
+        if (checkoutForm) {
+            checkoutForm.addEventListener('submit', handleFormSubmit);
+        }
+        
+        console.log('Checkout form initialized successfully');
+    } catch (error) {
+        console.error('Error initializing checkout form:', error);
+    }
 });
 </script>
 

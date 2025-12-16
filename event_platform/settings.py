@@ -205,7 +205,14 @@ AWS_SECRET_ACCESS_KEY = os.environ.get("SPACES_SECRET_KEY")
 AWS_STORAGE_BUCKET_NAME = os.environ.get("SPACES_BUCKET_NAME")
 AWS_S3_REGION_NAME = os.environ.get("SPACES_REGION", "nyc3")
 AWS_S3_ENDPOINT_URL = os.environ.get("SPACES_ENDPOINT_URL")  # e.g., https://nyc3.digitaloceanspaces.com
-AWS_S3_CUSTOM_DOMAIN = os.environ.get("SPACES_CDN_DOMAIN")  # e.g., your-bucket.nyc3.cdn.digitaloceanspaces.com
+# Strip protocol if accidentally included in CDN domain
+_cdn_domain = os.environ.get("SPACES_CDN_DOMAIN", "")
+if _cdn_domain.startswith("https://"):
+    AWS_S3_CUSTOM_DOMAIN = _cdn_domain[8:]  # Remove "https://"
+elif _cdn_domain.startswith("http://"):
+    AWS_S3_CUSTOM_DOMAIN = _cdn_domain[7:]  # Remove "http://"
+else:
+    AWS_S3_CUSTOM_DOMAIN = _cdn_domain if _cdn_domain else None
 
 # Use DigitalOcean Spaces for media if configured, otherwise use local storage
 if AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY and AWS_STORAGE_BUCKET_NAME and AWS_S3_ENDPOINT_URL:
