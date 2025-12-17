@@ -560,32 +560,49 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Handle quantity button clicks (works for both click and touch)
         function handleQuantityButton(e) {
-            var target = e.target;
+            // Use closest() to find the button even if user clicks on text inside
+            var decreaseBtn = e.target.closest ? e.target.closest('.qty-decrease') : null;
+            var increaseBtn = e.target.closest ? e.target.closest('.qty-increase') : null;
+            
+            // Fallback for browsers without closest()
+            if (!e.target.closest) {
+                var target = e.target;
+                // Check if target itself is the button
+                if (target.classList) {
+                    if (target.classList.contains('qty-decrease')) decreaseBtn = target;
+                    if (target.classList.contains('qty-increase')) increaseBtn = target;
+                }
+                // Check parent element
+                if (!decreaseBtn && !increaseBtn && target.parentElement && target.parentElement.classList) {
+                    if (target.parentElement.classList.contains('qty-decrease')) decreaseBtn = target.parentElement;
+                    if (target.parentElement.classList.contains('qty-increase')) increaseBtn = target.parentElement;
+                }
+            }
             
             // Prevent default to avoid double-firing on touch devices
-            if (e.type === 'touchend') {
+            if (e.type === 'touchend' && (decreaseBtn || increaseBtn)) {
                 e.preventDefault();
             }
             
             // Handle decrease button
-            if (target.classList && target.classList.contains('qty-decrease')) {
-                var ticketId = target.getAttribute('data-ticket-id');
+            if (decreaseBtn) {
+                var ticketId = decreaseBtn.getAttribute('data-ticket-id');
                 if (ticketId) {
                     updateQuantity(parseInt(ticketId), -1);
                     // Visual feedback
-                    target.style.background = '#f3f4f6';
-                    setTimeout(function() { target.style.background = 'white'; }, 100);
+                    decreaseBtn.style.background = '#f3f4f6';
+                    setTimeout(function() { decreaseBtn.style.background = 'white'; }, 100);
                 }
             }
             
             // Handle increase button
-            if (target.classList && target.classList.contains('qty-increase')) {
-                var ticketId = target.getAttribute('data-ticket-id');
+            if (increaseBtn) {
+                var ticketId = increaseBtn.getAttribute('data-ticket-id');
                 if (ticketId) {
                     updateQuantity(parseInt(ticketId), 1);
                     // Visual feedback
-                    target.style.background = '#f3f4f6';
-                    setTimeout(function() { target.style.background = 'white'; }, 100);
+                    increaseBtn.style.background = '#f3f4f6';
+                    setTimeout(function() { increaseBtn.style.background = 'white'; }, 100);
                 }
             }
         }
@@ -594,6 +611,23 @@ document.addEventListener('DOMContentLoaded', function() {
         // Use both click and touchend for maximum compatibility
         document.addEventListener('click', handleQuantityButton);
         document.addEventListener('touchend', handleQuantityButton);
+        
+        // Also attach direct listeners to buttons as a fallback
+        var qtyBtns = document.querySelectorAll('.qty-btn');
+        for (var i = 0; i < qtyBtns.length; i++) {
+            (function(btn) {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation(); // Prevent double-firing from delegation
+                    var ticketId = btn.getAttribute('data-ticket-id');
+                    if (ticketId) {
+                        var delta = btn.classList.contains('qty-increase') ? 1 : -1;
+                        updateQuantity(parseInt(ticketId), delta);
+                        btn.style.background = '#f3f4f6';
+                        setTimeout(function() { btn.style.background = 'white'; }, 100);
+                    }
+                });
+            })(qtyBtns[i]);
+        }
         
         // Set up quantity input listeners
         var qtyInputs = document.querySelectorAll('.qty-input');
@@ -662,11 +696,24 @@ document.addEventListener('DOMContentLoaded', function() {
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
+    position: relative;
+    z-index: 1;
+    pointer-events: auto !important;
+}
+
+/* Ensure button text doesn't capture clicks separately */
+.qty-btn * {
+    pointer-events: none;
 }
 
 .qty-btn:active {
     background: #f3f4f6 !important;
     transform: scale(0.95);
+}
+
+/* Prevent any parent elements from blocking button clicks */
+.qty-btn:hover {
+    background: #f9fafb;
 }
 
 /* Remove number input spinners */
