@@ -46,7 +46,7 @@
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
                                     {% if not ticket.is_sold_out %}
-                                    <button type="button" class="qty-btn qty-decrease" data-ticket-id="{{ ticket.id }}" style="width: 44px; height: 44px; min-width: 44px; border: 1px solid #E5E7EB; border-radius: 8px; background: white; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0.1); touch-action: manipulation; user-select: none;">−</button>
+                                    <button type="button" class="qty-btn qty-decrease" data-ticket-id="{{ ticket.id }}" style="width: 44px; height: 44px; min-width: 44px; border: 1px solid #E5E7EB; border-radius: 8px; background: white; color: #111827; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0.1); touch-action: manipulation; user-select: none;">−</button>
                                     <input type="text" 
                                            inputmode="numeric"
                                            pattern="[0-9]*"
@@ -59,8 +59,8 @@
                                            data-remaining="{{ ticket.quantity_remaining }}"
                                            class="qty-input" 
                                            readonly
-                                           style="width: 50px; height: 44px; text-align: center; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0.5rem; font-weight: 600; font-size: 1.125rem; -webkit-appearance: none; -moz-appearance: textfield;">
-                                    <button type="button" class="qty-btn qty-increase" data-ticket-id="{{ ticket.id }}" style="width: 44px; height: 44px; min-width: 44px; border: 1px solid #E5E7EB; border-radius: 8px; background: white; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0.1); touch-action: manipulation; user-select: none;">+</button>
+                                           style="width: 50px; height: 44px; text-align: center; border: 1px solid #E5E7EB; border-radius: 8px; padding: 0.5rem; font-weight: 600; font-size: 1.125rem; background: white; color: #111827; -webkit-appearance: none; -moz-appearance: textfield;">
+                                    <button type="button" class="qty-btn qty-increase" data-ticket-id="{{ ticket.id }}" style="width: 44px; height: 44px; min-width: 44px; border: 1px solid #E5E7EB; border-radius: 8px; background: white; color: #111827; cursor: pointer; font-size: 1.5rem; display: flex; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0.1); touch-action: manipulation; user-select: none;">+</button>
                                     {% endif %}
                                 </div>
                             </div>
@@ -88,7 +88,7 @@
                                    required 
                                    placeholder="Tu nombre completo"
                                    autocomplete="name"
-                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; touch-action: manipulation; -webkit-appearance: none;">
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; color: #111827; touch-action: manipulation; -webkit-appearance: none;">
                         </div>
                         
                         <div style="margin-bottom: 1rem;">
@@ -99,7 +99,7 @@
                                    required 
                                    placeholder="tu@email.com"
                                    autocomplete="email"
-                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; touch-action: manipulation; -webkit-appearance: none;">
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; color: #111827; touch-action: manipulation; -webkit-appearance: none;">
                             <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 0.25rem;">Enviaremos la confirmación a este correo</p>
                         </div>
                         
@@ -110,7 +110,7 @@
                                    name="customer_phone" 
                                    placeholder="+1 (555) 000-0000"
                                    autocomplete="tel"
-                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; touch-action: manipulation; -webkit-appearance: none;">
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; color: #111827; touch-action: manipulation; -webkit-appearance: none;">
                         </div>
                     </div>
                     
@@ -135,7 +135,7 @@
                                    required 
                                    placeholder="NOMBRE APELLIDO"
                                    autocomplete="cc-name"
-                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; text-transform: uppercase; touch-action: manipulation; -webkit-appearance: none;">
+                                   style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; color: #111827; text-transform: uppercase; touch-action: manipulation; -webkit-appearance: none;">
                         </div>
                         
                         <div style="margin-bottom: 1rem;">
@@ -149,7 +149,7 @@
                                        maxlength="19"
                                        autocomplete="cc-number"
                                        inputmode="numeric"
-                                       style="width: 100%; padding: 0.75rem 1rem; padding-right: 3rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
+                                       style="width: 100%; padding: 0.75rem 1rem; padding-right: 3rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; color: #111827; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
                                 <i id="card-brand-icon" class="bi bi-credit-card-2-front" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 1.25rem;"></i>
                             </div>
                         </div>
@@ -165,7 +165,7 @@
                                        maxlength="5"
                                        autocomplete="cc-exp"
                                        inputmode="numeric"
-                                       style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
+                                       style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; color: #111827; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
                             </div>
                             <div>
                                 <label for="card_cvv" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">CVV *</label>
@@ -178,7 +178,7 @@
                                            maxlength="4"
                                            autocomplete="cc-csc"
                                            inputmode="numeric"
-                                           style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
+                                           style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 16px; background: white; color: #111827; font-family: monospace; touch-action: manipulation; -webkit-appearance: none;">
                                     <i class="bi bi-question-circle" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); color: var(--gray-400); cursor: help;" title="Código de 3-4 dígitos en el reverso de tu tarjeta"></i>
                                 </div>
                             </div>
@@ -691,6 +691,12 @@ document.addEventListener('DOMContentLoaded', function() {
     to { transform: rotate(360deg); }
 }
 
+/* Force light color scheme to prevent dark mode issues */
+#checkout-form,
+#checkout-form * {
+    color-scheme: light;
+}
+
 /* Quantity buttons - ensure good touch targets */
 .qty-btn {
     -webkit-appearance: none;
@@ -699,6 +705,8 @@ document.addEventListener('DOMContentLoaded', function() {
     position: relative;
     z-index: 1;
     pointer-events: auto !important;
+    color: #111827 !important;
+    background-color: white !important;
 }
 
 /* Ensure button text doesn't capture clicks separately */
@@ -707,13 +715,29 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .qty-btn:active {
-    background: #f3f4f6 !important;
+    background-color: #f3f4f6 !important;
     transform: scale(0.95);
 }
 
 /* Prevent any parent elements from blocking button clicks */
 .qty-btn:hover {
-    background: #f9fafb;
+    background-color: #f9fafb !important;
+}
+
+/* Ensure all form inputs have visible text */
+#checkout-form input,
+#checkout-form select,
+#checkout-form textarea {
+    color: #111827 !important;
+    background-color: white !important;
+    -webkit-text-fill-color: #111827;
+}
+
+/* Placeholder styling */
+#checkout-form input::placeholder {
+    color: #9CA3AF !important;
+    -webkit-text-fill-color: #9CA3AF;
+    opacity: 1;
 }
 
 /* Remove number input spinners */
