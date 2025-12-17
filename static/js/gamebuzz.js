@@ -35,11 +35,19 @@ function initSmoothScrolling() {
     
     links.forEach(link => {
         link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
+            // Get the CURRENT href (it might have changed dynamically)
+            const currentHref = this.getAttribute('href');
+            
+            // Only handle smooth scrolling for actual anchor links (starting with #)
+            // If href has changed to a different URL, let default navigation happen
+            if (!currentHref || !currentHref.startsWith('#') || currentHref === '#') {
+                return; // Let default behavior happen
+            }
+            
+            const targetElement = document.querySelector(currentHref);
             
             if (targetElement) {
+                e.preventDefault();
                 targetElement.scrollIntoView({
                     behavior: 'smooth',
                     block: 'start'
