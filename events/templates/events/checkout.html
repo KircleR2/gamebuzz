@@ -525,6 +525,23 @@ function handleFormSubmit(e) {
     submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Procesando pago...';
     
     var formData = new FormData(document.getElementById('checkout-form'));
+
+    // --- 3DS browser parameters (deviceChannel=browser) ---
+    // Collected in JS per NeoPayment/Cobalt docs.
+    try {
+        formData.append('browserJavaEnabled', (navigator.javaEnabled && navigator.javaEnabled()) ? 'true' : 'false');
+        formData.append('browserJavascriptEnabled', 'true');
+        formData.append('browserLanguage', (navigator.language || navigator.userLanguage || 'es').toString());
+        formData.append('browserColorDepth', (screen.colorDepth || 24).toString());
+        formData.append('browserScreenHeight', (screen.height || 0).toString());
+        formData.append('browserScreenWidth', (screen.width || 0).toString());
+        formData.append('browserTZ', (new Date().getTimezoneOffset()).toString());
+        formData.append('browserUserAgent', (navigator.userAgent || '').toString());
+        // Spec example uses full width; keep it simple and deterministic.
+        formData.append('challengeWindowSize', (screen.width || 0).toString());
+    } catch (e) {
+        // If browser APIs fail, let backend defaults apply.
+    }
     
     fetch(window.location.href, {
         method: 'POST',
@@ -537,16 +554,31 @@ function handleFormSubmit(e) {
         return response.json();
     })
     .then(function(result) {
-        if (result.success) {
-            // Show success modal
+        if (result && result.success) {
+            // 3DS challenge flow
+            if (result.requires_3ds && result.challenge_url) {
+                try {
+                    if (result.order_number) {
+                        localStorage.setItem('last_order_number', result.order_number);
+                    }
+                } catch (e) {}
+                submitBtn.innerHTML = '<i class="bi bi-shield-lock-fill"></i> Redirigiendo a verificación 3DS...';
+                // Redirect to issuer challenge URL
+                window.location.href = result.challenge_url;
+                return;
+            }
+
+            // Non-3DS immediate success: show success modal
             document.getElementById('order-number').textContent = result.order_number;
             document.getElementById('view-summary-btn').href = '/order/' + result.order_number + '/';
             document.getElementById('success-modal').style.display = 'flex';
-        } else {
-            showError(result.message);
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i> Completar Compra';
+            return;
         }
+
+        // Error path
+        showError((result && result.message) ? result.message : 'Error al procesar la compra.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="bi bi-lock-fill" style="margin-right: 0.5rem;"></i> Completar Compra';
     })
     .catch(function(error) {
         console.error('Payment error:', error);

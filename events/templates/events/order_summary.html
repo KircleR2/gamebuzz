@@ -8,11 +8,25 @@
         
         <!-- Success Header -->
         <div style="text-align: center; margin-bottom: 2rem;">
+            {% if order.status == "pending" %}
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);">
+                <i class="bi bi-hourglass-split" style="font-size: 2.25rem; color: white;"></i>
+            </div>
+            <h1 style="font-size: 1.75rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">Estamos procesando tu pago</h1>
+            <p style="color: #6B7280; font-size: 1rem;">Si tu banco solicitó verificación 3DS, esta orden se confirmará en unos segundos.</p>
+            {% elif order.status == "completed" %}
             <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #10B981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);">
                 <i class="bi bi-check-lg" style="font-size: 2.5rem; color: white;"></i>
             </div>
             <h1 style="font-size: 1.75rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">¡Compra Exitosa!</h1>
             <p style="color: #6B7280; font-size: 1rem;">Tu orden ha sido confirmada</p>
+            {% else %}
+            <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3);">
+                <i class="bi bi-x-lg" style="font-size: 2.25rem; color: white;"></i>
+            </div>
+            <h1 style="font-size: 1.75rem; font-weight: 700; color: #111827; margin-bottom: 0.5rem;">Orden no completada</h1>
+            <p style="color: #6B7280; font-size: 1rem;">Esta orden está en estado: {{ order.status }}</p>
+            {% endif %}
         </div>
 
         <!-- Order Number Card -->
@@ -121,10 +135,22 @@
             <div style="display: grid; gap: 0.75rem; color: #4B5563; font-size: 0.9375rem;">
                 <div style="display: flex; justify-content: space-between;">
                     <span style="color: #6B7280;">Estado:</span>
+                    {% if order.status == "completed" %}
                     <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: #D1FAE5; color: #065F46; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
                         <i class="bi bi-check-circle-fill"></i>
                         Completado
                     </span>
+                    {% elif order.status == "pending" %}
+                    <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: #FEF3C7; color: #92400E; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                        <i class="bi bi-hourglass-split"></i>
+                        Pendiente (3DS)
+                    </span>
+                    {% else %}
+                    <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: #FEE2E2; color: #991B1B; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                        <i class="bi bi-x-circle-fill"></i>
+                        {{ order.status }}
+                    </span>
+                    {% endif %}
                 </div>
                 <div style="display: flex; justify-content: space-between;">
                     <span style="color: #6B7280;">Método:</span>
@@ -158,15 +184,56 @@
 
         <!-- Help Text -->
         <div style="text-align: center; margin-top: 2rem; padding: 1.5rem; background: #FEF3C7; border-radius: 12px; border: 1px solid #FCD34D;">
-            <p style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
-                <i class="bi bi-envelope-check" style="margin-right: 0.25rem;"></i>
-                Hemos enviado un correo de confirmación a <strong>{{ order.customer_email }}</strong>
-            </p>
-            <p style="color: #92400E; font-size: 0.8125rem;">
-                Por favor guarda tu número de orden para cualquier consulta.
-            </p>
+            {% if order.status == "completed" %}
+                <p style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                    <i class="bi bi-envelope-check" style="margin-right: 0.25rem;"></i>
+                    Hemos enviado un correo de confirmación a <strong>{{ order.customer_email }}</strong>
+                </p>
+                <p style="color: #92400E; font-size: 0.8125rem;">
+                    Por favor guarda tu número de orden para cualquier consulta.
+                </p>
+            {% elif order.status == "pending" %}
+                <p style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                    <i class="bi bi-shield-lock" style="margin-right: 0.25rem;"></i>
+                    Estamos esperando la confirmación del banco (3DS). Esta página se actualizará automáticamente.
+                </p>
+                <p style="color: #92400E; font-size: 0.8125rem;">
+                    Si no se actualiza en 60s, revisa con tu banco o intenta nuevamente.
+                </p>
+            {% else %}
+                <p style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                    <i class="bi bi-info-circle" style="margin-right: 0.25rem;"></i>
+                    Esta orden no se completó. Puedes volver al evento e intentar nuevamente.
+                </p>
+            {% endif %}
         </div>
     </div>
 </section>
+
+{% if order.status == "pending" %}
+<script>
+(function() {
+  var start = Date.now();
+  function poll() {
+    fetch('/order/{{ order.order_number }}/status/', { headers: { 'X-Requested-With': 'XMLHttpRequest' }})
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if (!data || !data.status) return;
+        if (data.status === 'completed' || data.status === 'cancelled') {
+          window.location.reload();
+          return;
+        }
+      })
+      .catch(function(){ /* ignore */ })
+      .finally(function(){
+        if (Date.now() - start < 60000) {
+          setTimeout(poll, 2000);
+        }
+      });
+  }
+  poll();
+})();
+</script>
+{% endif %}
 {% endblock %}
 

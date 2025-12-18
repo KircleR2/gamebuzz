@@ -98,8 +98,21 @@ class CobaltPaymentGateway:
             "Accept": "application/json"
         }
     
-    def process_sale(self, amount, pan, exp_date, cvv2=None, card_holder=None, 
-                     tax=0, tip=0, metas=None, currency_code="USD"):
+    def process_sale(
+        self,
+        amount,
+        pan,
+        exp_date,
+        cvv2=None,
+        card_holder=None,
+        tax=0,
+        tip=0,
+        metas=None,
+        currency_code="USD",
+        three_ds_params=None,
+        webhook=None,
+        return_url=None,
+    ):
         """
         Process a sale transaction.
         
@@ -140,6 +153,19 @@ class CobaltPaymentGateway:
             payload["card_holder"] = card_holder
         if metas:
             payload["metas"] = metas
+
+        # 3DS (Native 3-D Secure)
+        # Per API docs: if 3ds_params is present, webhook is required.
+        if three_ds_params is not None:
+            payload["3ds_params"] = three_ds_params
+            if not webhook:
+                raise CobaltPaymentError(
+                    message="Configuración incompleta: webhook requerido para 3DS",
+                    error_code="3ds_webhook_required",
+                )
+            payload["webhook"] = webhook
+            if return_url:
+                payload["return_url"] = return_url
             
         try:
             logger.info(f"Processing Cobalt sale: amount={amount} cents")
@@ -155,14 +181,18 @@ class CobaltPaymentGateway:
             if response.status_code == 200 and data.get('status') == 'ok':
                 transaction = data.get('data', {})
                 tx_status = transaction.get('status')
+                metadatas = transaction.get('metadatas', {}) or {}
                 
                 logger.info(
                     f"Cobalt transaction {transaction.get('id')}: "
                     f"status={tx_status}, auth={transaction.get('authorization_number')}"
                 )
+
+                requires_3ds = tx_status == 'authenticating'
                 
                 return {
                     'success': tx_status == 'authorized',
+                    'requires_3ds': requires_3ds,
                     'id': transaction.get('id'),
                     'identifier': transaction.get('identifier'),
                     'status': tx_status,
@@ -170,8 +200,10 @@ class CobaltPaymentGateway:
                     'reference_number': transaction.get('reference_number'),
                     'response_code': transaction.get('response_code'),
                     'pan': transaction.get('pan'),  # Masked
-                    'card_brand': transaction.get('metadatas', {}).get('card_brand'),
+                    'card_brand': metadatas.get('card_brand'),
                     'processed_at': transaction.get('processed_at'),
+                    '3ds_authentication_form': metadatas.get('3ds_authentication_form'),
+                    '3ds_version': metadatas.get('3ds_version'),
                     'raw_response': transaction
                 }
             else:

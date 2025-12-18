@@ -298,6 +298,10 @@ COBALT_HOST = os.environ.get("COBALT_HOST", "https://cbotest.cobalt.tech")
 COBALT_CLIENT_ID = os.environ.get("COBALT_CLIENT_ID", "9edb0211-6402-408f-b891-51dfb469fc45")
 COBALT_CLIENT_SECRET = os.environ.get("COBALT_CLIENT_SECRET", "QMfOv8IDN4DDLRHQjs6Cw9V2jfLMWLmhU1d80LOS")
 
+# Webhook security token (required for 3DS flow)
+# IMPORTANT: set this in production to a strong random value.
+COBALT_WEBHOOK_TOKEN = os.environ.get("COBALT_WEBHOOK_TOKEN", "")
+
 # Security settings for production
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
