@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
+{% load l10n %}
 
 {% block title %}Comprar Entradas - {{ event.title }} - PassClub{% endblock %}
 
@@ -54,7 +55,8 @@
                                            id="qty_{{ ticket.id }}" 
                                            value="0" 
                                            data-ticket-id="{{ ticket.id }}"
-                                           data-price="{{ ticket.price }}"
+                                           data-name="{{ ticket.name|escape }}"
+                                           data-price="{{ ticket.price|unlocalize }}"
                                            data-max="{{ ticket.max_per_order }}"
                                            data-remaining="{{ ticket.quantity_remaining }}"
                                            class="qty-input" 
@@ -277,16 +279,18 @@
 
 {% block extra_js %}
 <script>
-// Ticket data with properly escaped names
+// Ticket data (built from DOM to avoid locale/escaping issues)
 var ticketPrices = {};
-{% for ticket in ticket_types %}
-ticketPrices[{{ ticket.id }}] = {
-    price: {{ ticket.price }},
-    name: "{{ ticket.name|escapejs }}",
-    max: {{ ticket.max_per_order }},
-    remaining: {{ ticket.quantity_remaining }}
-};
-{% endfor %}
+document.querySelectorAll('.qty-input').forEach(function(input) {
+    var ticketId = parseInt(input.getAttribute('data-ticket-id'), 10);
+    if (!ticketId) return;
+    ticketPrices[ticketId] = {
+        price: parseFloat(input.getAttribute('data-price')) || 0,
+        name: input.getAttribute('data-name') || ('Ticket ' + ticketId),
+        max: parseInt(input.getAttribute('data-max'), 10) || 0,
+        remaining: parseInt(input.getAttribute('data-remaining'), 10) || 0
+    };
+});
 
 // Update quantity for a ticket
 function updateQuantity(ticketId, delta) {
