@@ -300,7 +300,8 @@ COBALT_CLIENT_SECRET = os.environ.get("COBALT_CLIENT_SECRET", "QMfOv8IDN4DDLRHQj
 
 # Webhook security token (required for 3DS flow)
 # IMPORTANT: set this in production to a strong random value.
-COBALT_WEBHOOK_TOKEN = os.environ.get("COBALT_WEBHOOK_TOKEN", "")
+# For sandbox/testing, we provide a default. Override with COBALT_WEBHOOK_TOKEN env var.
+COBALT_WEBHOOK_TOKEN = os.environ.get("COBALT_WEBHOOK_TOKEN", "UKTiX7m76jAEt_lcWhhHQhhvDQWRjtu0WjmxtdStzxk")
 
 # Security settings for production
 if not DEBUG:
