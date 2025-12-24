@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 import json
 import logging
-from .models import Event, Category, NewsletterSubscriber, TicketType, Order, OrderItem
+from .models import Event, Category, NewsletterSubscriber, TicketType, Order, OrderItem, CustomerVaultProfile, SavedPaymentMethod
 from django.utils import timezone
 from django.db import models
 from django.db import transaction
@@ -271,24 +271,44 @@ class EventCheckoutView(TemplateView):
                     'message': 'Nombre y correo electrónico son requeridos.'
                 }, status=400)
             
-            # Get payment info
-            card_number = request.POST.get('card_number', '').replace(' ', '').strip()
-            card_exp = request.POST.get('card_exp', '').strip()
-            card_cvv = request.POST.get('card_cvv', '').strip()
-            card_holder = request.POST.get('card_holder', '').strip()
+            # NEW: Check if using saved card token
+            saved_card_token = request.POST.get('saved_card_token', '').strip()
+            save_new_card = request.POST.get('save_card', '').lower() == 'true'
             
-            if not card_number or not card_exp or not card_cvv or not card_holder:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Todos los datos de la tarjeta son requeridos.'
-                }, status=400)
+            # If using saved card, validate it exists
+            saved_card = None
+            if saved_card_token:
+                try:
+                    saved_card = SavedPaymentMethod.objects.select_related('customer_profile').get(
+                        customer_token=saved_card_token,
+                        is_active=True,
+                        customer_profile__is_active=True,
+                        customer_profile__customer_email=customer_email
+                    )
+                except SavedPaymentMethod.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Tarjeta guardada no encontrada o inválida.'
+                    }, status=400)
+            else:
+                # Get payment info for new card
+                card_number = request.POST.get('card_number', '').replace(' ', '').strip()
+                card_exp = request.POST.get('card_exp', '').strip()
+                card_cvv = request.POST.get('card_cvv', '').strip()
+                card_holder = request.POST.get('card_holder', '').strip()
+                
+                if not card_number or not card_exp or not card_cvv or not card_holder:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Todos los datos de la tarjeta son requeridos.'
+                    }, status=400)
             
-            # Validate card number length
-            if len(card_number) < 13 or len(card_number) > 19:
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Número de tarjeta inválido.'
-                }, status=400)
+                # Validate card number length (only for new cards)
+                if len(card_number) < 13 or len(card_number) > 19:
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Número de tarjeta inválido.'
+                    }, status=400)
             
             # Get ticket selections
             ticket_items = []
@@ -387,22 +407,50 @@ class EventCheckoutView(TemplateView):
             # Process payment through Cobalt (with 3DS)
             try:
                 gateway = CobaltPaymentGateway()
-                payment_result = gateway.process_sale(
-                    amount=amount_in_cents,
-                    pan=card_number,
-                    exp_date=card_exp,
-                    cvv2=card_cvv,
-                    card_holder=card_holder,
-                    metas={
-                        "order_number": order.order_number,
-                        "order_id": str(order.id),
-                        "customer_email": customer_email,
-                        "event_id": str(event.id),
-                    },
-                    three_ds_params=three_ds_params,
-                    webhook=webhook_url,
-                    return_url=return_url,
-                )
+                
+                # Prepare metadata for payment
+                payment_metas = {
+                    "order_number": order.order_number,
+                    "order_id": str(order.id),
+                    "customer_email": customer_email,
+                    "event_id": str(event.id),
+                }
+                
+                # Choose payment path: saved card token or new card
+                if saved_card:
+                    # Path A: Payment with saved card token
+                    logger.info(f"Processing payment with saved card token for order {order.order_number}")
+                    payment_result = gateway.process_sale_with_token(
+                        customer_token=saved_card.customer_token,
+                        amount=amount_in_cents,
+                        metadatas=payment_metas,
+                        three_ds_params=three_ds_params,
+                        webhook=webhook_url,
+                        return_url=return_url,
+                    )
+                    
+                    # Update order with vault info
+                    order.vault_customer_id = saved_card.customer_profile.vault_customer_id
+                    order.used_saved_card = True
+                    order.saved_card_token = saved_card.customer_token
+                    order.save(update_fields=['vault_customer_id', 'used_saved_card', 'saved_card_token'])
+                    
+                    # Update last_used_at for the saved card
+                    saved_card.last_used_at = timezone.now()
+                    saved_card.save(update_fields=['last_used_at'])
+                else:
+                    # Path B: Payment with new card
+                    payment_result = gateway.process_sale(
+                        amount=amount_in_cents,
+                        pan=card_number,
+                        exp_date=card_exp,
+                        cvv2=card_cvv,
+                        card_holder=card_holder,
+                        metas=payment_metas,
+                        three_ds_params=three_ds_params,
+                        webhook=webhook_url,
+                        return_url=return_url,
+                    )
 
                 tx_id = payment_result.get("id")
                 tx_status = payment_result.get("status")
@@ -437,6 +485,22 @@ class EventCheckoutView(TemplateView):
                     order.save(update_fields=["status", "payment_reference"])
 
                     logger.info(f"Order {order.order_number} completed with Cobalt TX:{tx_id}")
+                    
+                    # NEW: Optionally tokenize the card if save_new_card is True
+                    if save_new_card and not saved_card:
+                        try:
+                            self._tokenize_card_after_payment(
+                                gateway=gateway,
+                                customer_email=customer_email,
+                                customer_name=customer_name,
+                                card_holder=card_holder,
+                                card_number=card_number,
+                                card_exp=card_exp,
+                                order=order
+                            )
+                        except Exception as e:
+                            # Log error but don't fail the completed payment
+                            logger.warning(f"Card tokenization failed for order {order.order_number}: {e}")
 
                     return JsonResponse({
                         'success': True,
@@ -488,6 +552,95 @@ class EventCheckoutView(TemplateView):
                 'success': False,
                 'message': f'Error al procesar la compra: {str(e)}'
             }, status=500)
+    
+    def _tokenize_card_after_payment(self, gateway, customer_email, customer_name, 
+                                     card_holder, card_number, card_exp, order):
+        """
+        Tokenize a card after successful payment.
+        Creates CustomerVaultProfile and SavedPaymentMethod if needed.
+        
+        This is called asynchronously after payment success, so errors are logged but not raised.
+        """
+        try:
+            # Parse name into first/last names (simple split)
+            name_parts = customer_name.strip().split(' ', 2)
+            first_name = name_parts[0] if len(name_parts) > 0 else customer_name
+            first_surname = name_parts[1] if len(name_parts) > 1 else ''
+            second_surname = name_parts[2] if len(name_parts) > 2 else ''
+            
+            # Get or create CustomerVaultProfile
+            profile, created = CustomerVaultProfile.objects.get_or_create(
+                customer_email=customer_email,
+                defaults={
+                    'name': first_name,
+                    'first_surname': first_surname or 'N/A',
+                    'second_surname': second_surname,
+                    'doc_id_type': 'C',
+                    'doc_id': customer_email,  # Use email as fallback doc_id
+                    'vault_reference': f'CUST-{customer_email}-{timezone.now().timestamp()}',
+                    'vault_customer_id': 0,  # Will be updated below
+                }
+            )
+            
+            # If new profile, create customer in Cobalt Vault
+            if created or profile.vault_customer_id == 0:
+                logger.info(f"Creating vault customer for {customer_email}")
+                vault_customer = gateway.create_vault_customer(
+                    name=first_name,
+                    first_surname=first_surname or 'N/A',
+                    second_surname=second_surname,
+                    email=customer_email,
+                    doc_id=customer_email,  # Use email as doc_id
+                    doc_id_type='C',
+                    reference=f'CUST-{customer_email}'
+                )
+                profile.vault_customer_id = vault_customer['id']
+                profile.vault_reference = vault_customer.get('metadatas', {}).get('reference', profile.vault_reference)
+                profile.save(update_fields=['vault_customer_id', 'vault_reference'])
+                logger.info(f"Vault customer created with ID {profile.vault_customer_id}")
+            
+            # Tokenize the card
+            logger.info(f"Tokenizing card for customer {profile.vault_customer_id}")
+            card_data = gateway.add_card_to_vault(
+                customer_id=profile.vault_customer_id,
+                card_holder=card_holder,
+                card_number=card_number,
+                exp_date=card_exp
+            )
+            
+            # Parse expiration date
+            exp_parts = card_exp.split('/')
+            exp_month = exp_parts[0] if len(exp_parts) > 0 else '01'
+            exp_year = '20' + exp_parts[1] if len(exp_parts) > 1 else '2099'
+            
+            # Check if this is the first card for this profile
+            is_first_card = not profile.saved_cards.filter(is_active=True).exists()
+            
+            # Create SavedPaymentMethod
+            saved_card = SavedPaymentMethod.objects.create(
+                customer_profile=profile,
+                vault_card_id=card_data['id'],
+                customer_token=card_data['token'],
+                card_brand=card_data['card_brand'],
+                last_four=card_data['last_four'],
+                exp_month=exp_month,
+                exp_year=exp_year,
+                card_holder=card_data['card_holder'],
+                alias=card_data['alias'] or f"{card_data['card_brand']} {card_data['last_four']}",
+                is_default=is_first_card,  # First card becomes default
+                is_active=True
+            )
+            
+            # Update order with vault info
+            order.vault_customer_id = profile.vault_customer_id
+            order.saved_card_token = saved_card.customer_token
+            order.save(update_fields=['vault_customer_id', 'saved_card_token'])
+            
+            logger.info(f"Card tokenized successfully: {saved_card.alias} for {customer_email}")
+            
+        except Exception as e:
+            logger.error(f"Failed to tokenize card: {e}", exc_info=True)
+            raise  # Re-raise for logging at caller level
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -572,3 +725,48 @@ class OrderStatusView(View):
             "status": order.status,
             "payment_reference": order.payment_reference,
         })
+
+
+class CustomerSavedCardsView(View):
+    """
+    Fetch saved cards by email for checkout page.
+    Returns JSON with list of saved payment methods.
+    """
+    
+    def get(self, request, *args, **kwargs):
+        customer_email = request.GET.get('email', '').strip()
+        
+        if not customer_email:
+            return JsonResponse({'saved_cards': []})
+        
+        try:
+            # Get customer profile
+            profile = CustomerVaultProfile.objects.get(
+                customer_email=customer_email,
+                is_active=True
+            )
+            
+            # Get active saved cards, ordered by default and last used
+            cards = profile.saved_cards.filter(is_active=True).order_by('-is_default', '-last_used_at')
+            
+            # Build response
+            saved_cards_data = [
+                {
+                    'token': card.customer_token,
+                    'brand': card.card_brand,
+                    'last_four': card.last_four,
+                    'exp_month': card.exp_month,
+                    'exp_year': card.exp_year,
+                    'alias': card.alias,
+                    'is_default': card.is_default
+                }
+                for card in cards
+            ]
+            
+            logger.info(f"Loaded {len(saved_cards_data)} saved cards for {customer_email}")
+            
+            return JsonResponse({'saved_cards': saved_cards_data})
+            
+        except CustomerVaultProfile.DoesNotExist:
+            # No saved cards for this email
+            return JsonResponse({'saved_cards': []})

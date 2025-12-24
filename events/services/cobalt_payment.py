@@ -41,9 +41,11 @@ class CobaltPaymentGateway:
             print("Payment successful!")
     """
     
-    # Token cache
+    # Token caches (separate for Transaction and Vault APIs)
     _access_token = None
     _token_expires_at = None
+    _vault_access_token = None
+    _vault_token_expires_at = None
     
     def __init__(self):
         self.host = settings.COBALT_HOST
@@ -311,6 +313,440 @@ class CobaltPaymentGateway:
             logger.error(f"Cobalt refund failed for {transaction_id}: {e}")
             raise CobaltPaymentError(
                 message="Error procesando reembolso",
+                error_code="connection_error"
+            )
+    
+    # ========================================================================
+    # VAULT API METHODS (Customer & Card Tokenization)
+    # ========================================================================
+    
+    def _get_vault_access_token(self):
+        """
+        Get OAuth2 access token for Vault API.
+        Uses the same credentials but separate cache from transaction API.
+        """
+        # Check if we have a valid cached vault token
+        if (CobaltPaymentGateway._vault_access_token and 
+            CobaltPaymentGateway._vault_token_expires_at and 
+            datetime.now() < CobaltPaymentGateway._vault_token_expires_at):
+            return CobaltPaymentGateway._vault_access_token
+        
+        # Request new token (uses same endpoint and credentials)
+        url = f"{self.host}/oauth/token"
+        payload = {
+            "grant_type": "client_credentials",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret
+        }
+        
+        try:
+            response = requests.post(url, json=payload, timeout=30)
+            response.raise_for_status()
+            data = response.json()
+            
+            # Cache the vault token
+            CobaltPaymentGateway._vault_access_token = data['access_token']
+            expires_in = data.get('expires_in', 86400)  # Default 24 hours
+            CobaltPaymentGateway._vault_token_expires_at = datetime.now() + timedelta(seconds=expires_in - 60)
+            
+            logger.info("Cobalt Vault OAuth token obtained successfully")
+            return CobaltPaymentGateway._vault_access_token
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to obtain Cobalt Vault OAuth token: {e}")
+            raise CobaltPaymentError(
+                message="Error de autenticación con el vault de pagos",
+                error_code="vault_auth_failed"
+            )
+    
+    def _get_vault_headers(self):
+        """Get headers with vault authorization token"""
+        token = self._get_vault_access_token()
+        return {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        }
+    
+    def create_vault_customer(self, name, first_surname, email, doc_id, doc_id_type='C', 
+                              second_surname='', customer_type='natural_person', **kwargs):
+        """
+        Create a customer in Cobalt Vault.
+        
+        Args:
+            name: Customer name (max 50 chars)
+            first_surname: First last name (max 120 chars)
+            email: Customer email
+            doc_id: ID document number
+            doc_id_type: 'C' for Cédula or 'P' for Passport (default: 'C')
+            second_surname: Second last name (optional)
+            customer_type: 'natural_person' or 'legal_person' (default: 'natural_person')
+            **kwargs: Additional metadata fields (address1, address2, city, state, country, zip, reference)
+            
+        Returns:
+            dict with customer data including 'id' (vault customer ID)
+        """
+        url = f"{self.host}/api/v2/customers"
+        
+        payload = {
+            "name": name,
+            "first_surname": first_surname,
+            "doc_id_type": doc_id_type,
+            "doc_id": doc_id,
+            "customer_type": customer_type,
+            "status": "active"
+        }
+        
+        if second_surname:
+            payload["second_surname"] = second_surname
+        
+        # Add optional metadata fields
+        metadata_fields = ['reference', 'email', 'address1', 'address2', 'city', 'state', 'country', 'zip']
+        for field in metadata_fields:
+            value = kwargs.get(field) or (email if field == 'email' else None)
+            if value:
+                payload[f"metadata[{field}]"] = value
+        
+        try:
+            logger.info(f"Creating Cobalt Vault customer for {email}")
+            response = requests.post(
+                url,
+                json=payload,
+                headers=self._get_vault_headers(),
+                timeout=30
+            )
+            
+            data = response.json()
+            
+            if response.status_code == 200 and data.get('status') == 'ok':
+                customer = data.get('data', {})
+                logger.info(f"Vault customer created: ID={customer.get('id')}, email={email}")
+                return customer
+            else:
+                error_msg = data.get('message', 'Error creando cliente en vault')
+                logger.error(f"Failed to create vault customer: {error_msg}")
+                raise CobaltPaymentError(
+                    message=f"Error creando perfil de cliente: {error_msg}",
+                    error_code=data.get('error', 'customer_creation_failed'),
+                    response_data=data
+                )
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Vault customer creation request failed: {e}")
+            raise CobaltPaymentError(
+                message="Error de conexión al crear perfil de cliente",
+                error_code="connection_error"
+            )
+    
+    def get_vault_customer(self, customer_id):
+        """
+        Get vault customer details by ID.
+        
+        Args:
+            customer_id: The vault customer ID
+            
+        Returns:
+            dict with customer details
+        """
+        url = f"{self.host}/api/v2/customers/{customer_id}"
+        
+        try:
+            response = requests.get(url, headers=self._get_vault_headers(), timeout=30)
+            data = response.json()
+            
+            if response.status_code == 200 and data.get('status') == 'ok':
+                return data.get('data', {})
+            else:
+                raise CobaltPaymentError(
+                    message="No se pudo obtener información del cliente",
+                    error_code="customer_not_found",
+                    response_data=data
+                )
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to get vault customer {customer_id}: {e}")
+            raise CobaltPaymentError(
+                message="Error consultando cliente",
+                error_code="connection_error"
+            )
+    
+    def list_vault_customers(self, limit=20, page=1):
+        """
+        List vault customers with pagination.
+        
+        Args:
+            limit: Max customers per page (default: 20)
+            page: Page number (default: 1)
+            
+        Returns:
+            dict with pagination data and customer list
+        """
+        url = f"{self.host}/api/v2/customers"
+        params = {"limit": limit, "page": page}
+        
+        try:
+            response = requests.get(url, params=params, headers=self._get_vault_headers(), timeout=30)
+            data = response.json()
+            
+            if response.status_code == 200 and data.get('status') == 'ok':
+                return data.get('data', {})
+            else:
+                raise CobaltPaymentError(
+                    message="Error listando clientes",
+                    error_code="list_failed",
+                    response_data=data
+                )
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to list vault customers: {e}")
+            raise CobaltPaymentError(
+                message="Error consultando clientes",
+                error_code="connection_error"
+            )
+    
+    def add_card_to_vault(self, customer_id, card_holder, card_number, exp_date, alias='', status='active'):
+        """
+        Add a card to a vault customer's profile and get a token.
+        
+        Args:
+            customer_id: Vault customer ID
+            card_holder: Name on card
+            card_number: Full card number (will be tokenized, NOT stored)
+            exp_date: Expiration date in MM/YY format
+            alias: Optional alias (e.g., "VISA 1234")
+            status: 'active' or 'inactive' (default: 'active')
+            
+        Returns:
+            dict with card details including:
+            - token: Customer token for payments
+            - id: Card ID in vault
+            - card_number: Masked card number
+            - last_four: Last 4 digits
+            - card_brand: VISA, MASTERCARD, etc.
+            - alias: Card alias
+        """
+        url = f"{self.host}/api/v2/customers/{customer_id}/card"
+        
+        payload = {
+            "card_holder": card_holder.upper(),
+            "card_number": card_number,
+            "exp_date": exp_date,
+            "status": status
+        }
+        
+        if alias:
+            payload["alias"] = alias
+        
+        try:
+            logger.info(f"Adding card to vault customer {customer_id}")
+            response = requests.post(
+                url,
+                json=payload,
+                headers=self._get_vault_headers(),
+                timeout=30
+            )
+            
+            data = response.json()
+            
+            if response.status_code == 200 and data.get('status') == 'ok':
+                card_data = data.get('data', {})
+                logger.info(f"Card tokenized successfully: token={card_data.get('token')[:10]}...")
+                
+                # Extract last 4 digits from masked card number
+                masked_number = card_data.get('card_number', '')
+                last_four = masked_number[-4:] if masked_number else ''
+                
+                # Determine card brand from masked number or metadata
+                card_brand = 'UNKNOWN'
+                if masked_number.startswith('4'):
+                    card_brand = 'VISA'
+                elif masked_number.startswith('5'):
+                    card_brand = 'MASTERCARD'
+                
+                return {
+                    'token': card_data.get('token'),
+                    'id': card_data.get('id'),
+                    'card_number': masked_number,
+                    'last_four': last_four,
+                    'card_brand': card_brand,
+                    'exp_date': card_data.get('exp_date'),
+                    'alias': card_data.get('alias'),
+                    'card_holder': card_data.get('card_holder'),
+                    'status': card_data.get('status'),
+                    'raw_response': card_data
+                }
+            else:
+                error_msg = data.get('message', 'Error tokenizando tarjeta')
+                logger.error(f"Failed to tokenize card: {error_msg}")
+                raise CobaltPaymentError(
+                    message=f"Error guardando tarjeta: {error_msg}",
+                    error_code=data.get('error', 'card_tokenization_failed'),
+                    response_data=data
+                )
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Card tokenization request failed: {e}")
+            raise CobaltPaymentError(
+                message="Error de conexión al guardar tarjeta",
+                error_code="connection_error"
+            )
+    
+    def delete_vault_card(self, customer_id, card_id):
+        """
+        Delete a card from vault.
+        
+        Args:
+            customer_id: Vault customer ID
+            card_id: Vault card ID
+            
+        Returns:
+            dict with success status
+        """
+        url = f"{self.host}/api/v2/customers/{customer_id}/card/{card_id}"
+        
+        try:
+            logger.info(f"Deleting card {card_id} from vault customer {customer_id}")
+            response = requests.delete(url, headers=self._get_vault_headers(), timeout=30)
+            data = response.json()
+            
+            if response.status_code == 200 and data.get('status') == 'ok':
+                logger.info(f"Card {card_id} deleted successfully")
+                return {'success': True, 'message': data.get('data', 'Card deleted')}
+            else:
+                raise CobaltPaymentError(
+                    message="Error eliminando tarjeta",
+                    error_code=data.get('error', 'card_deletion_failed'),
+                    response_data=data
+                )
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Card deletion request failed: {e}")
+            raise CobaltPaymentError(
+                message="Error de conexión al eliminar tarjeta",
+                error_code="connection_error"
+            )
+    
+    def process_sale_with_token(
+        self,
+        customer_token,
+        amount,
+        currency_code="USD",
+        tax=0,
+        tip=0,
+        metadatas=None,
+        three_ds_params=None,
+        webhook=None,
+        return_url=None,
+    ):
+        """
+        Process a sale using a tokenized card.
+        
+        IMPORTANT: Token payments still support 3DS authentication!
+        Include 3ds_params, webhook, and return_url for secure transactions.
+        
+        Args:
+            customer_token: Token from vault (from SavedPaymentMethod)
+            amount: Amount in cents (e.g., 1000 = $10.00)
+            currency_code: Currency code (default: USD)
+            tax: Tax amount in cents (optional)
+            tip: Tip amount in cents (optional)
+            metadatas: Additional metadata dict (optional)
+            three_ds_params: 3DS browser data (recommended for security)
+            webhook: Webhook URL for async 3DS updates (required if 3ds_params provided)
+            return_url: URL to return to after 3DS challenge (optional)
+            
+        Returns:
+            dict with transaction result (same structure as process_sale)
+        """
+        url = f"{self.host}/api/v2/recurrent_payment/sale"
+        
+        payload = {
+            "customer_token": customer_token,
+            "currency_code": currency_code,
+            "amount": str(amount),
+            "tax": str(tax),
+            "tip": str(tip),
+            "type": "sale"
+        }
+        
+        if metadatas:
+            payload["metadatas"] = metadatas
+        
+        # Token-based payments CAN use 3DS for extra security
+        if three_ds_params is not None:
+            payload["3ds_params"] = three_ds_params
+            if not webhook:
+                raise CobaltPaymentError(
+                    message="Configuración incompleta: webhook requerido para 3DS",
+                    error_code="3ds_webhook_required",
+                )
+            payload["webhook"] = webhook
+            if return_url:
+                payload["return_url"] = return_url
+        
+        try:
+            logger.info(f"Processing token-based sale: amount={amount} cents, token={customer_token[:10]}...")
+            response = requests.post(
+                url,
+                json=payload,
+                headers=self._get_vault_headers(),
+                timeout=60
+            )
+            
+            data = response.json()
+            
+            if response.status_code == 200 and data.get('status') == 'ok':
+                transaction = data.get('data', {})
+                tx_status = transaction.get('status')
+                metadatas_resp = transaction.get('metadatas', {}) or {}
+                
+                logger.info(
+                    f"Token-based transaction {transaction.get('id')}: "
+                    f"status={tx_status}, auth={transaction.get('authorization_number')}"
+                )
+                
+                requires_3ds = tx_status == 'authenticating'
+                
+                return {
+                    'success': tx_status == 'authorized',
+                    'requires_3ds': requires_3ds,
+                    'id': transaction.get('id'),
+                    'identifier': transaction.get('identifier'),
+                    'status': tx_status,
+                    'authorization_number': transaction.get('authorization_number'),
+                    'reference_number': transaction.get('reference_number'),
+                    'response_code': transaction.get('response_code'),
+                    'pan': transaction.get('pan'),  # Masked
+                    'card_brand': metadatas_resp.get('card_brand'),
+                    'processed_at': transaction.get('processed_at'),
+                    '3ds_authentication_form': metadatas_resp.get('3ds_authentication_form'),
+                    '3ds_version': metadatas_resp.get('3ds_version'),
+                    'raw_response': transaction
+                }
+            else:
+                error_msg = data.get('message', 'Error procesando pago con token')
+                error_code = data.get('error', 'unknown_error')
+                
+                logger.warning(f"Token-based payment failed: {error_code} - {error_msg}")
+                
+                return {
+                    'success': False,
+                    'status': 'error',
+                    'error_code': error_code,
+                    'message': error_msg,
+                    'details': data.get('data', {})
+                }
+                
+        except requests.exceptions.Timeout:
+            logger.error("Token-based payment timeout")
+            raise CobaltPaymentError(
+                message="El procesador de pagos no respondió a tiempo. Por favor intenta de nuevo.",
+                error_code="timeout"
+            )
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Token-based payment request failed: {e}")
+            raise CobaltPaymentError(
+                message="Error de conexión con el procesador de pagos",
                 error_code="connection_error"
             )
 

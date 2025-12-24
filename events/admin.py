@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Category, Event, NewsletterSubscriber, TicketType, Order, OrderItem
+from .models import Category, Event, NewsletterSubscriber, TicketType, Order, OrderItem, CustomerVaultProfile, SavedPaymentMethod
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from .forms import IconField
@@ -255,7 +255,7 @@ class OrderAdmin(admin.ModelAdmin):
             'fields': ('customer_name', 'customer_email', 'customer_phone')
         }),
         (_('Pago'), {
-            'fields': ('total_amount', 'payment_method', 'payment_reference')
+            'fields': ('total_amount', 'payment_method', 'payment_reference', 'used_saved_card', 'saved_card_token', 'vault_customer_id')
         }),
         (_('Notas'), {
             'fields': ('notes',),
@@ -266,6 +266,92 @@ class OrderAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
+    
+    class Media:
+        css = {
+            'all': ('admin/css/admin_custom.css',)
+        }
+
+
+class SavedPaymentMethodInline(admin.TabularInline):
+    model = SavedPaymentMethod
+    extra = 0
+    readonly_fields = ('vault_card_id', 'customer_token', 'card_brand', 'last_four', 'exp_month', 'exp_year', 'card_holder', 'alias', 'created_at', 'last_used_at')
+    can_delete = True
+    fields = ('alias', 'card_brand', 'last_four', 'exp_month', 'exp_year', 'is_default', 'is_active', 'last_used_at')
+
+
+@admin.register(CustomerVaultProfile)
+class CustomerVaultProfileAdmin(admin.ModelAdmin):
+    list_display = ('customer_email', 'name', 'first_surname', 'vault_customer_id', 'is_active', 'card_count', 'created_at')
+    list_filter = ('is_active', 'doc_id_type', 'created_at')
+    search_fields = ('customer_email', 'name', 'first_surname', 'doc_id', 'vault_reference')
+    readonly_fields = ('vault_customer_id', 'vault_reference', 'created_at', 'updated_at')
+    inlines = [SavedPaymentMethodInline]
+    
+    fieldsets = (
+        (_('Información del Cliente'), {
+            'fields': ('customer_email', 'name', 'first_surname', 'second_surname')
+        }),
+        (_('Documentación'), {
+            'fields': ('doc_id_type', 'doc_id')
+        }),
+        (_('Información de Vault'), {
+            'fields': ('vault_customer_id', 'vault_reference', 'is_active')
+        }),
+        (_('Marcas de Tiempo'), {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def card_count(self, obj):
+        """Show number of saved cards"""
+        count = obj.saved_cards.filter(is_active=True).count()
+        return f"{count} tarjetas"
+    card_count.short_description = _('Tarjetas Guardadas')
+    
+    class Media:
+        css = {
+            'all': ('admin/css/admin_custom.css',)
+        }
+
+
+@admin.register(SavedPaymentMethod)
+class SavedPaymentMethodAdmin(admin.ModelAdmin):
+    list_display = ('alias', 'customer_email', 'card_brand', 'last_four', 'exp_display', 'is_default', 'is_active', 'last_used_at')
+    list_filter = ('is_active', 'is_default', 'card_brand', 'created_at')
+    search_fields = ('customer_profile__customer_email', 'alias', 'last_four', 'card_holder')
+    readonly_fields = ('vault_card_id', 'customer_token', 'created_at', 'updated_at', 'last_used_at')
+    
+    fieldsets = (
+        (_('Información de la Tarjeta'), {
+            'fields': ('customer_profile', 'alias', 'card_brand', 'last_four', 'card_holder')
+        }),
+        (_('Expiración'), {
+            'fields': ('exp_month', 'exp_year')
+        }),
+        (_('Configuración'), {
+            'fields': ('is_default', 'is_active')
+        }),
+        (_('Información de Vault'), {
+            'fields': ('vault_card_id', 'customer_token'),
+            'classes': ('collapse',)
+        }),
+        (_('Marcas de Tiempo'), {
+            'fields': ('created_at', 'updated_at', 'last_used_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def customer_email(self, obj):
+        return obj.customer_profile.customer_email
+    customer_email.short_description = _('Email del Cliente')
+    customer_email.admin_order_field = 'customer_profile__customer_email'
+    
+    def exp_display(self, obj):
+        return f"{obj.exp_month}/{obj.exp_year}"
+    exp_display.short_description = _('Expiración')
     
     class Media:
         css = {

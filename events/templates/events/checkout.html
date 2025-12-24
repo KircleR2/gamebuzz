@@ -123,12 +123,31 @@
                             Información de Pago
                         </h2>
                         
+                        <!-- Saved Cards Section (dynamically populated) -->
+                        <div id="saved-cards-section" style="display: none; margin-bottom: 1.5rem;">
+                            <h3 style="font-size: 0.9375rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--gray-700);">
+                                Tus tarjetas guardadas
+                            </h3>
+                            <div id="saved-cards-list" style="display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.75rem;">
+                                <!-- Saved cards will be inserted here by JavaScript -->
+                            </div>
+                            <label style="display: flex; align-items: center; padding: 0.75rem; border: 2px solid #D1D5DB; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
+                                <input type="radio" name="payment_method" value="new_card" style="margin-right: 0.75rem; width: 18px; height: 18px;">
+                                <span style="font-weight: 500;">
+                                    <i class="bi bi-plus-circle" style="margin-right: 0.5rem;"></i>
+                                    Usar nueva tarjeta
+                                </span>
+                            </label>
+                        </div>
+                        
                         <!-- Card brands accepted -->
-                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 1rem;" id="card-brands">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/100px-Visa_Inc._logo.svg.png" alt="Visa" style="height: 24px;">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/100px-Mastercard-logo.svg.png" alt="Mastercard" style="height: 24px;">
                         </div>
                         
+                        <!-- New Card Form (can be hidden if saved card selected) -->
+                        <div id="new-card-form">
                         <div style="margin-bottom: 1rem;">
                             <label for="card_holder" style="display: block; font-weight: 500; margin-bottom: 0.5rem;">Nombre en la tarjeta *</label>
                             <input type="text" 
@@ -185,6 +204,18 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Save Card Checkbox (only shown for new cards) -->
+                        <div id="save-card-section" style="display: none; margin-top: 1rem; padding: 0.75rem; background: #EFF6FF; border-radius: 8px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="saveCard" name="save_card" value="true" style="margin-right: 0.75rem; width: 18px; height: 18px; cursor: pointer;">
+                                <span style="font-size: 0.875rem; font-weight: 500; color: #1E40AF;">
+                                    <i class="bi bi-bookmark-star" style="margin-right: 0.5rem;"></i>
+                                    Guardar esta tarjeta para compras futuras
+                                </span>
+                            </label>
+                        </div>
+                        </div><!-- End new-card-form -->
                         
                         <div style="margin-top: 1rem; padding: 0.75rem; background: #F0FDF4; border-radius: 8px; display: flex; align-items: center; gap: 0.5rem;">
                             <i class="bi bi-shield-lock-fill" style="color: #16A34A;"></i>
@@ -493,6 +524,85 @@ function showError(message) {
     }, 5000);
 }
 
+// NEW: Load saved cards for customer
+function loadSavedCards(email) {
+    // Don't load if already loading
+    if (window.loadingSavedCards) return;
+    window.loadingSavedCards = true;
+    
+    fetch('/customer/saved-cards/?email=' + encodeURIComponent(email))
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            window.loadingSavedCards = false;
+            if (data.saved_cards && data.saved_cards.length > 0) {
+                renderSavedCards(data.saved_cards);
+            }
+        })
+        .catch(function(error) {
+            window.loadingSavedCards = false;
+            console.error('Error loading saved cards:', error);
+        });
+}
+
+// NEW: Render saved cards in UI
+function renderSavedCards(cards) {
+    var savedCardsSection = document.getElementById('saved-cards-section');
+    var savedCardsList = document.getElementById('saved-cards-list');
+    var newCardForm = document.getElementById('new-card-form');
+    var saveCardSection = document.getElementById('save-card-section');
+    
+    if (!savedCardsSection || !savedCardsList) return;
+    
+    // Clear existing cards
+    savedCardsList.innerHTML = '';
+    
+    // Add each saved card
+    cards.forEach(function(card, index) {
+        var cardItem = document.createElement('label');
+        cardItem.style.cssText = 'display: flex; align-items: center; padding: 0.75rem; border: 2px solid #D1D5DB; border-radius: 8px; cursor: pointer; transition: all 0.2s;';
+        cardItem.innerHTML = '<input type="radio" name="payment_method" value="saved_' + card.token + '" data-token="' + card.token + '" ' + 
+            (card.is_default || index === 0 ? 'checked' : '') + 
+            ' style="margin-right: 0.75rem; width: 18px; height: 18px;">' +
+            '<div style="flex: 1;"><div style="font-weight: 500; margin-bottom: 0.25rem;">' + card.brand + ' •••• ' + card.last_four + '</div>' +
+            '<div style="font-size: 0.8125rem; color: var(--gray-500);">Expira: ' + card.exp_month + '/' + card.exp_year + '</div></div>' +
+            (card.is_default ? '<span style="font-size: 0.75rem; background: #DBEAFE; color: #1E40AF; padding: 0.25rem 0.5rem; border-radius: 4px;">Predeterminada</span>' : '');
+        savedCardsList.appendChild(cardItem);
+    });
+    
+    // Show saved cards section
+    savedCardsSection.style.display = 'block';
+    
+    // Hide new card form by default (first saved card is selected)
+    if (newCardForm) newCardForm.style.display = 'none';
+    if (saveCardSection) saveCardSection.style.display = 'none';
+    
+    // Add change handlers for payment method selection
+    var paymentRadios = document.querySelectorAll('[name="payment_method"]');
+    paymentRadios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            if (this.value === 'new_card') {
+                // Show new card form
+                if (newCardForm) newCardForm.style.display = 'block';
+                if (saveCardSection) saveCardSection.style.display = 'block';
+                // Make card fields required
+                document.getElementById('card_number').required = true;
+                document.getElementById('card_exp').required = true;
+                document.getElementById('card_cvv').required = true;
+                document.getElementById('card_holder').required = true;
+            } else {
+                // Hide new card form
+                if (newCardForm) newCardForm.style.display = 'none';
+                if (saveCardSection) saveCardSection.style.display = 'none';
+                // Make card fields optional
+                document.getElementById('card_number').required = false;
+                document.getElementById('card_exp').required = false;
+                document.getElementById('card_cvv').required = false;
+                document.getElementById('card_holder').required = false;
+            }
+        });
+    });
+}
+
 // Handle form submission
 function handleFormSubmit(e) {
     e.preventDefault();
@@ -525,6 +635,20 @@ function handleFormSubmit(e) {
     submitBtn.innerHTML = '<i class="bi bi-arrow-repeat spin"></i> Procesando pago...';
     
     var formData = new FormData(document.getElementById('checkout-form'));
+    
+    // NEW: Check if using saved card
+    var paymentMethod = document.querySelector('[name="payment_method"]:checked');
+    if (paymentMethod && paymentMethod.value.startsWith('saved_')) {
+        // Using saved card - add token to form data
+        var savedCardToken = paymentMethod.getAttribute('data-token');
+        formData.append('saved_card_token', savedCardToken);
+    } else {
+        // Using new card - check if save_card checkbox is checked
+        var saveCardCheckbox = document.getElementById('saveCard');
+        if (saveCardCheckbox && saveCardCheckbox.checked) {
+            formData.set('save_card', 'true');
+        }
+    }
 
     // --- 3DS browser parameters (deviceChannel=browser) ---
     // Collected in JS per NeoPayment/Cobalt docs.
@@ -593,6 +717,24 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         // Initialize total
         updateTotal();
+        
+        // NEW: Load saved cards on page load
+        var customerEmailInput = document.getElementById('customer_email');
+        if (customerEmailInput) {
+            // Try to load saved cards when email is entered or changed
+            customerEmailInput.addEventListener('blur', function() {
+                var email = this.value.trim();
+                if (email && email.indexOf('@') > -1) {
+                    loadSavedCards(email);
+                }
+            });
+            
+            // Also try to load if email is pre-filled
+            var prefilledEmail = customerEmailInput.value.trim();
+            if (prefilledEmail && prefilledEmail.indexOf('@') > -1) {
+                loadSavedCards(prefilledEmail);
+            }
+        }
         
         // Handle quantity button clicks (works for both click and touch)
         function handleQuantityButton(e) {

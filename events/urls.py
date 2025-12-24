@@ -9,6 +9,7 @@ from .views import (
     OrderSummaryView,
     CobaltWebhookView,
     OrderStatusView,
+    CustomerSavedCardsView,
 )
 
 urlpatterns = [
@@ -18,6 +19,7 @@ urlpatterns = [
     path('order/<str:order_number>/', OrderSummaryView.as_view(), name='order_summary'),  # Order summary page
     path('order/<str:order_number>/status/', OrderStatusView.as_view(), name='order_status'),  # JSON status
     path('payments/cobalt/webhook/', CobaltWebhookView.as_view(), name='cobalt_webhook'),
+    path('customer/saved-cards/', CustomerSavedCardsView.as_view(), name='customer_saved_cards'),  # Get saved cards by email
     path('category/<slug:slug>/', CategoryEventsView.as_view(), name='category_events'),
     path('featured/', FeaturedEventsView.as_view(), name='featured_events'),
     path('popular/', PopularEventsView.as_view(), name='popular_events'),

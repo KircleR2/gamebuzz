@@ -203,6 +203,11 @@ class Order(models.Model):
     payment_method = models.CharField(_('método de pago'), max_length=50, blank=True)
     payment_reference = models.CharField(_('referencia de pago'), max_length=200, blank=True)
     notes = models.TextField(_('notas'), blank=True)
+    
+    vault_customer_id = models.IntegerField(_('ID de cliente en Vault'), null=True, blank=True, help_text=_("ID del cliente en Vault si se usó tokenización"))
+    used_saved_card = models.BooleanField(_('usó tarjeta guardada'), default=False)
+    saved_card_token = models.CharField(_('token de tarjeta guardada'), max_length=255, blank=True)
+    
     created_at = models.DateTimeField(_('fecha de creación'), auto_now_add=True)
     updated_at = models.DateTimeField(_('fecha de actualización'), auto_now=True)
 
@@ -238,4 +243,79 @@ class OrderItem(models.Model):
 
     def save(self, *args, **kwargs):
         self.subtotal = self.quantity * self.unit_price
+        super().save(*args, **kwargs)
+
+
+class CustomerVaultProfile(models.Model):
+    """Customer profile in Cobalt Vault API for tokenization"""
+    DOC_TYPE_CHOICES = [
+        ('C', _('Cédula')),
+        ('P', _('Pasaporte'))
+    ]
+    
+    customer_email = models.EmailField(_('correo del cliente'), unique=True, db_index=True)
+    vault_customer_id = models.IntegerField(_('ID de cliente en Vault'), help_text=_("ID del cliente en la API de Cobalt"))
+    vault_reference = models.CharField(_('referencia de Vault'), max_length=100, unique=True)
+    
+    name = models.CharField(_('nombre'), max_length=50)
+    first_surname = models.CharField(_('primer apellido'), max_length=120)
+    second_surname = models.CharField(_('segundo apellido'), max_length=120, blank=True)
+    doc_id_type = models.CharField(_('tipo de documento'), max_length=1, choices=DOC_TYPE_CHOICES)
+    doc_id = models.CharField(_('número de documento'), max_length=50)
+    
+    is_active = models.BooleanField(_('activo'), default=True)
+    created_at = models.DateTimeField(_('fecha de creación'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('fecha de actualización'), auto_now=True)
+    
+    class Meta:
+        verbose_name = _("Perfil de Cliente Vault")
+        verbose_name_plural = _("Perfiles de Cliente Vault")
+        ordering = ['-created_at']
+        indexes = [models.Index(fields=['customer_email'])]
+    
+    def __str__(self):
+        return f"{self.name} {self.first_surname} ({self.customer_email})"
+
+
+class SavedPaymentMethod(models.Model):
+    """Tokenized payment cards stored in Cobalt Vault"""
+    customer_profile = models.ForeignKey(
+        CustomerVaultProfile, 
+        on_delete=models.CASCADE, 
+        related_name='saved_cards',
+        verbose_name=_('perfil de cliente')
+    )
+    
+    vault_card_id = models.IntegerField(_('ID de tarjeta en Vault'), help_text=_("ID de la tarjeta en la API de Cobalt"))
+    customer_token = models.CharField(_('token de cliente'), max_length=255, unique=True, db_index=True)
+    
+    card_brand = models.CharField(_('marca de tarjeta'), max_length=20)
+    last_four = models.CharField(_('últimos 4 dígitos'), max_length=4)
+    exp_month = models.CharField(_('mes de expiración'), max_length=2)
+    exp_year = models.CharField(_('año de expiración'), max_length=4)
+    card_holder = models.CharField(_('titular de tarjeta'), max_length=255)
+    alias = models.CharField(_('alias'), max_length=50)
+    
+    is_default = models.BooleanField(_('predeterminada'), default=False)
+    is_active = models.BooleanField(_('activa'), default=True)
+    
+    created_at = models.DateTimeField(_('fecha de creación'), auto_now_add=True)
+    updated_at = models.DateTimeField(_('fecha de actualización'), auto_now=True)
+    last_used_at = models.DateTimeField(_('último uso'), null=True, blank=True)
+    
+    class Meta:
+        verbose_name = _("Método de Pago Guardado")
+        verbose_name_plural = _("Métodos de Pago Guardados")
+        ordering = ['-is_default', '-last_used_at']
+        indexes = [models.Index(fields=['customer_token'])]
+    
+    def __str__(self):
+        return f"{self.alias} - {self.customer_profile.customer_email}"
+    
+    def save(self, *args, **kwargs):
+        if self.is_default:
+            SavedPaymentMethod.objects.filter(
+                customer_profile=self.customer_profile,
+                is_default=True
+            ).exclude(pk=self.pk).update(is_default=False)
         super().save(*args, **kwargs)
