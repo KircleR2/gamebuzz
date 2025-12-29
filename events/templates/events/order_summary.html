@@ -185,13 +185,13 @@
         <!-- Help Text -->
         <div style="text-align: center; margin-top: 2rem; padding: 1.5rem; background: #FEF3C7; border-radius: 12px; border: 1px solid #FCD34D;">
             {% if order.status == "completed" %}
-                <p style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
-                    <i class="bi bi-envelope-check" style="margin-right: 0.25rem;"></i>
-                    Hemos enviado un correo de confirmación a <strong>{{ order.customer_email }}</strong>
-                </p>
-                <p style="color: #92400E; font-size: 0.8125rem;">
-                    Por favor guarda tu número de orden para cualquier consulta.
-                </p>
+            <p style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                <i class="bi bi-envelope-check" style="margin-right: 0.25rem;"></i>
+                Hemos enviado un correo de confirmación a <strong>{{ order.customer_email }}</strong>
+            </p>
+            <p style="color: #92400E; font-size: 0.8125rem;">
+                Por favor guarda tu número de orden para cualquier consulta.
+            </p>
             {% elif order.status == "pending" %}
                 <p style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
                     <i class="bi bi-shield-lock" style="margin-right: 0.25rem;"></i>
