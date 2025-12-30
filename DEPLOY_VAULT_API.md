@@ -99,41 +99,72 @@ git push origin main
 
 ## 🧪 Testing After Deployment
 
-Once deployed, test with card **4196591200000002**:
+Once deployed, test with card **4111111111111111** (confirmed working with OTP `123456`):
 
 ### Test 1: New Card WITHOUT Saving
 1. Go to: https://passclub.online/e/evento-test-1/checkout/
 2. Fill in details:
    - Email: `test1@example.com`
-   - Card: `4196591200000002`
+   - Card: `4111111111111111`
    - Exp: `12/25`
    - CVV: `123`
+   - Name: `TEST USER`
 3. **DO NOT** check "Save this card"
 4. Complete purchase
 5. Enter OTP: `123456` when prompted
 6. ✅ Should complete successfully
+7. ✅ Card should NOT be saved
 
-### Test 2: New Card WITH Saving
+### Test 2: New Card WITH Saving (CRITICAL TEST)
 1. Go to checkout
 2. Fill in details:
    - Email: `test2@example.com`
-   - Card: `4196591200000002`
+   - Card: `4111111111111111`
    - Exp: `12/25`
    - CVV: `123`
-3. **✅ CHECK** "Save this card for future purchases"
+   - Name: `TEST USER TWO`
+3. **✅ CHECK** "Guardar esta tarjeta para compras futuras"
 4. Complete purchase
 5. Enter OTP: `123456`
 6. ✅ Should complete AND save card
+7. ✅ Check logs: should see "Tokenizing new card" and "Card tokenized successfully"
 
-### Test 3: Use Saved Card
-1. Go to checkout again
+### Test 3: Use Saved Card (VERIFY IT WORKS)
+1. Go to checkout again with a NEW incognito/private window
 2. Enter email: `test2@example.com`
-3. Wait 2-3 seconds
-4. ✅ Saved card should appear: "Visa •••• 0002"
-5. Select saved card (card fields disappear)
-6. Complete purchase
-7. Enter OTP: `123456`
-8. ✅ Should complete with saved card!
+3. Wait 2-3 seconds for cards to load
+4. ✅ Saved card should appear: "Visa •••• 1111"
+5. Select the saved card radio button
+6. ✅ Card entry fields should disappear
+7. Complete purchase (no card entry needed!)
+8. Enter OTP: `123456` (still required for security)
+9. ✅ Should complete with saved card
+10. ✅ Check logs: should see "Processing payment with saved card token"
+
+## 🔐 How Card Saving Works (Post-Fix)
+
+**FIXED ISSUE:** Cards were not being saved when 3DS challenge was involved.
+
+**NEW WORKFLOW (Correct):**
+1. User checks "Save this card" ✅
+2. System **tokenizes card FIRST** (creates vault customer + stores card) 🔒
+3. System **pays with the token** (not raw card data) 💳
+4. 3DS challenge appears → User enters OTP 🔑
+5. Payment completes via webhook 📡
+6. **Card is ALREADY saved** (from step 2) ✅
+
+**OLD WORKFLOW (Broken):**
+1. User checks "Save this card"
+2. System pays with raw card data
+3. 3DS challenge appears → User enters OTP
+4. Payment completes via webhook
+5. ❌ Card data not available in webhook → **CARD NOT SAVED**
+
+**Why the fix works:**
+- Tokenization happens BEFORE 3DS challenge
+- Card is saved immediately, regardless of 3DS outcome
+- Follows Vault API best practices
+- Secure: card data never stored in our database
 
 ## 📊 Verify in Database (Optional)
 
@@ -240,5 +271,5 @@ After deployment, you should be able to:
 
 **Recommended:** Use **Option 1 (Console)** for fastest fix - only 2 minutes!
 
-Then test on https://passclub.online/e/evento-test-1/checkout/ with card `4196591200000002`
+Then test on https://passclub.online/e/evento-test-1/checkout/ with card `4111111111111111` and OTP `123456`
 
