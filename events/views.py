@@ -440,17 +440,115 @@ class EventCheckoutView(TemplateView):
                     saved_card.save(update_fields=['last_used_at'])
                 else:
                     # Path B: Payment with new card
-                    payment_result = gateway.process_sale(
-                        amount=amount_in_cents,
-                        pan=card_number,
-                        exp_date=card_exp,
-                        cvv2=card_cvv,
-                        card_holder=card_holder,
-                        metas=payment_metas,
-                        three_ds_params=three_ds_params,
-                        webhook=webhook_url,
-                        return_url=return_url,
-                    )
+                    # NEW: If save_card is requested, tokenize FIRST, then pay with token
+                    if save_new_card:
+                        try:
+                            logger.info(f"Tokenizing new card for order {order.order_number} before payment")
+                            
+                            # Parse name into first/last names
+                            name_parts = customer_name.strip().split(' ', 2)
+                            first_name = name_parts[0] if len(name_parts) > 0 else customer_name
+                            first_surname = name_parts[1] if len(name_parts) > 1 else 'N/A'
+                            second_surname = name_parts[2] if len(name_parts) > 2 else ''
+                            
+                            # Get or create CustomerVaultProfile
+                            profile, created = CustomerVaultProfile.objects.get_or_create(
+                                customer_email=customer_email,
+                                defaults={
+                                    'name': first_name,
+                                    'first_surname': first_surname,
+                                    'second_surname': second_surname,
+                                    'doc_id_type': 'C',
+                                    'doc_id': customer_email,
+                                    'vault_reference': f'CUST-{customer_email}-{timezone.now().timestamp()}',
+                                    'vault_customer_id': 0,
+                                }
+                            )
+                            
+                            # If new profile, create customer in Cobalt Vault
+                            if created or profile.vault_customer_id == 0:
+                                logger.info(f"Creating vault customer for {customer_email}")
+                                vault_customer = gateway.create_vault_customer(
+                                    name=first_name,
+                                    first_surname=first_surname,
+                                    second_surname=second_surname,
+                                    email=customer_email,
+                                    doc_id=customer_email,
+                                    doc_id_type='C',
+                                    reference=f'CUST-{customer_email}'
+                                )
+                                profile.vault_customer_id = vault_customer['id']
+                                profile.vault_reference = vault_customer.get('metadatas', {}).get('reference', profile.vault_reference)
+                                profile.save(update_fields=['vault_customer_id', 'vault_reference'])
+                            
+                            # Tokenize the card in vault
+                            card_data = gateway.add_card_to_vault(
+                                customer_id=profile.vault_customer_id,
+                                card_holder=card_holder,
+                                pan=card_number,
+                                exp_date=card_exp,
+                                cvv2=card_cvv,
+                            )
+                            
+                            card_token = card_data.get('token')
+                            logger.info(f"Card tokenized successfully: {card_token}")
+                            
+                            # Save the card in our database
+                            SavedPaymentMethod.objects.create(
+                                customer_profile=profile,
+                                customer_token=card_token,
+                                card_brand=card_data.get('brand', 'Unknown'),
+                                last_four=card_data.get('last_four', '0000'),
+                                exp_month=card_data.get('exp_month', '01'),
+                                exp_year=card_data.get('exp_year', '2099'),
+                                alias=f"{card_data.get('brand', 'Card')} •••• {card_data.get('last_four', '0000')}",
+                                is_default=not profile.saved_cards.filter(is_active=True).exists()
+                            )
+                            
+                            # NOW pay with the token
+                            logger.info(f"Processing payment with newly tokenized card for order {order.order_number}")
+                            payment_result = gateway.process_sale_with_token(
+                                customer_token=card_token,
+                                amount=amount_in_cents,
+                                metadatas=payment_metas,
+                                three_ds_params=three_ds_params,
+                                webhook=webhook_url,
+                                return_url=return_url,
+                            )
+                            
+                            # Update order with vault info
+                            order.vault_customer_id = profile.vault_customer_id
+                            order.used_saved_card = False  # It's a new card, just tokenized
+                            order.saved_card_token = card_token
+                            order.save(update_fields=['vault_customer_id', 'used_saved_card', 'saved_card_token'])
+                            
+                        except Exception as e:
+                            logger.warning(f"Card tokenization failed, falling back to direct payment: {e}")
+                            # Fallback to direct payment if tokenization fails
+                            payment_result = gateway.process_sale(
+                                amount=amount_in_cents,
+                                pan=card_number,
+                                exp_date=card_exp,
+                                cvv2=card_cvv,
+                                card_holder=card_holder,
+                                metas=payment_metas,
+                                three_ds_params=three_ds_params,
+                                webhook=webhook_url,
+                                return_url=return_url,
+                            )
+                    else:
+                        # Regular payment without saving card
+                        payment_result = gateway.process_sale(
+                            amount=amount_in_cents,
+                            pan=card_number,
+                            exp_date=card_exp,
+                            cvv2=card_cvv,
+                            card_holder=card_holder,
+                            metas=payment_metas,
+                            three_ds_params=three_ds_params,
+                            webhook=webhook_url,
+                            return_url=return_url,
+                        )
 
                 tx_id = payment_result.get("id")
                 tx_status = payment_result.get("status")
@@ -486,21 +584,7 @@ class EventCheckoutView(TemplateView):
 
                     logger.info(f"Order {order.order_number} completed with Cobalt TX:{tx_id}")
                     
-                    # NEW: Optionally tokenize the card if save_new_card is True
-                    if save_new_card and not saved_card:
-                        try:
-                            self._tokenize_card_after_payment(
-                                gateway=gateway,
-                                customer_email=customer_email,
-                                customer_name=customer_name,
-                                card_holder=card_holder,
-                                card_number=card_number,
-                                card_exp=card_exp,
-                                order=order
-                            )
-                        except Exception as e:
-                            # Log error but don't fail the completed payment
-                            logger.warning(f"Card tokenization failed for order {order.order_number}: {e}")
+                    # Note: Card is already tokenized before payment if save_new_card was True
 
                     return JsonResponse({
                         'success': True,
