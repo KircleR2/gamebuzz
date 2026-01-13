@@ -264,7 +264,7 @@ UNFOLD = {
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": True,
     "ENVIRONMENT": None,
-    "DASHBOARD_CALLBACK": None,
+    "DASHBOARD_CALLBACK": "events.admin.dashboard_callback",
     "THEME": "dark",
     "COLORS": {
         "primary": {
@@ -286,6 +286,82 @@ UNFOLD = {
             "source": "/assets/admin/css/admin_custom.css",
         },
     ],
+    # Sidebar navigation groups
+    "SIDEBAR": {
+        "show_search": True,
+        "show_all_applications": False,
+        "navigation": [
+            {
+                "title": _("Eventos"),
+                "icon": "calendar_month",
+                "items": [
+                    {
+                        "title": _("Eventos"),
+                        "icon": "event",
+                        "link": "/dashboard/events/event/",
+                    },
+                    {
+                        "title": _("Categorías"),
+                        "icon": "category",
+                        "link": "/dashboard/events/category/",
+                    },
+                ],
+            },
+            {
+                "title": _("Ventas"),
+                "icon": "shopping_cart",
+                "items": [
+                    {
+                        "title": _("Órdenes"),
+                        "icon": "receipt_long",
+                        "link": "/dashboard/events/order/",
+                    },
+                ],
+            },
+            {
+                "title": _("Marketing"),
+                "icon": "campaign",
+                "items": [
+                    {
+                        "title": _("Suscriptores"),
+                        "icon": "mail",
+                        "link": "/dashboard/events/newslettersubscriber/",
+                    },
+                ],
+            },
+            {
+                "title": _("Pagos"),
+                "icon": "credit_card",
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": _("Clientes Vault"),
+                        "icon": "account_balance",
+                        "link": "/dashboard/events/customervaultprofile/",
+                    },
+                ],
+            },
+            {
+                "separator": True,
+            },
+            {
+                "title": _("Usuarios"),
+                "icon": "people",
+                "items": [
+                    {
+                        "title": _("Usuarios"),
+                        "icon": "person",
+                        "link": "/dashboard/auth/user/",
+                    },
+                    {
+                        "title": _("Grupos"),
+                        "icon": "group",
+                        "link": "/dashboard/auth/group/",
+                    },
+                ],
+            },
+        ],
+    },
 }
 
 # Login redirect settings

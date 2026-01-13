@@ -485,23 +485,28 @@ class EventCheckoutView(TemplateView):
                             card_data = gateway.add_card_to_vault(
                                 customer_id=profile.vault_customer_id,
                                 card_holder=card_holder,
-                                pan=card_number,
+                                card_number=card_number,
                                 exp_date=card_exp,
-                                cvv2=card_cvv,
                             )
                             
                             card_token = card_data.get('token')
                             logger.info(f"Card tokenized successfully: {card_token}")
                             
+                            # Parse expiration date (comes as MM/YY from API)
+                            exp_date_str = card_data.get('exp_date', card_exp)
+                            exp_parts = exp_date_str.split('/')
+                            exp_month = exp_parts[0] if len(exp_parts) > 0 else '01'
+                            exp_year = exp_parts[1] if len(exp_parts) > 1 else '99'
+                            
                             # Save the card in our database
                             SavedPaymentMethod.objects.create(
                                 customer_profile=profile,
                                 customer_token=card_token,
-                                card_brand=card_data.get('brand', 'Unknown'),
+                                card_brand=card_data.get('card_brand', 'Unknown'),
                                 last_four=card_data.get('last_four', '0000'),
-                                exp_month=card_data.get('exp_month', '01'),
-                                exp_year=card_data.get('exp_year', '2099'),
-                                alias=f"{card_data.get('brand', 'Card')} •••• {card_data.get('last_four', '0000')}",
+                                exp_month=exp_month,
+                                exp_year=exp_year,
+                                alias=f"{card_data.get('card_brand', 'Card')} •••• {card_data.get('last_four', '0000')}",
                                 is_default=not profile.saved_cards.filter(is_active=True).exists()
                             )
                             
@@ -523,7 +528,7 @@ class EventCheckoutView(TemplateView):
                             order.save(update_fields=['vault_customer_id', 'used_saved_card', 'saved_card_token'])
                             
                         except Exception as e:
-                            logger.warning(f"Card tokenization failed, falling back to direct payment: {e}")
+                            logger.error(f"Card tokenization failed for order {order.order_number}: {str(e)}", exc_info=True)
                             # Fallback to direct payment if tokenization fails
                             payment_result = gateway.process_sale(
                                 amount=amount_in_cents,
