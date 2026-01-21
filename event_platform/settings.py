@@ -25,8 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-x4t0-q!u=w+mp3#mg7d3q(@w5^5eb(dt(r9_#f1-+!_sg&7i7^")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# TEMPORARY: Set to True to debug 500 error - CHANGE BACK TO False after debugging!
-DEBUG = os.environ.get("DEBUG", "True") == "True"
+DEBUG = os.environ.get("DEBUG", "False") == "True"
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
@@ -339,9 +338,6 @@ UNFOLD = {
                         "link": "/dashboard/events/customervaultprofile/",
                     },
                 ],
-            },
-            {
-                "separator": True,
             },
             {
                 "title": _("Usuarios"),
