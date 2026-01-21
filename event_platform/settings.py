@@ -282,9 +282,7 @@ UNFOLD = {
     },
     # Add custom CSS to fix input field borders
     "STYLES": [
-        {
-            "source": "/assets/admin/css/admin_custom.css",
-        },
+        "/assets/admin/css/admin_custom.css",
     ],
     # Sidebar navigation groups
     "SIDEBAR": {
