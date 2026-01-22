@@ -8,6 +8,9 @@
     <div class="container">
         <div class="category-header-content">
             <p class="in-passclub">en PassClub</p>
+            {% if is_subcategory and parent_category %}
+            <p class="parent-category-link"><a href="{% url 'category_events' parent_category.slug %}"><i class="bi bi-arrow-left"></i> {{ parent_category.name }}</a></p>
+            {% endif %}
             <h1 class="category-title">{{ category.name }}</h1>
             {% if category.description %}
             <p class="category-description">{{ category.description }}</p>
@@ -15,6 +18,29 @@
         </div>
     </div>
 </section>
+
+<!-- Subcategories Section (only show if this category has subcategories) -->
+{% if subcategories %}
+<section class="section subcategories-section">
+    <div class="container">
+        <h2 class="section-title">Explorar en {{ category.name }}</h2>
+        <p class="section-subtitle">Descubre subcategorías específicas de {{ category.name }}</p>
+        
+        <div class="categories-grid">
+            {% for subcat in subcategories %}
+            <div class="category-card">
+                <a href="{% url 'category_events' subcat.slug %}">
+                    <div class="category-icon">
+                        <i class="bi {{ subcat.icon|default:'bi-controller' }}"></i>
+                    </div>
+                    <h3 class="category-title">{{ subcat.name }}</h3>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
 
 <!-- Category Events -->
 <section class="section">
@@ -119,7 +145,7 @@
         
         <div class="categories-grid">
             {% for cat in categories %}
-            {% if cat.id != category.id %}
+            {% if cat.id != category.id and cat.id != parent_category.id %}
             <div class="category-card">
                 <a href="{% url 'category_events' cat.slug %}">
                     <div class="category-icon">
@@ -189,6 +215,24 @@
         opacity: 0.8;
     }
     
+    .parent-category-link {
+        margin-bottom: 0.5rem;
+    }
+    
+    .parent-category-link a {
+        color: rgba(255, 255, 255, 0.9);
+        text-decoration: none;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: color 0.2s ease;
+    }
+    
+    .parent-category-link a:hover {
+        color: #FFD700;
+    }
+    
     .category-title {
         font-size: 4rem;
         font-weight: 700;
@@ -207,6 +251,11 @@
         font-size: 3rem;
         margin-top: 1rem;
         display: none;
+    }
+    
+    .subcategories-section {
+        padding: 3rem 0;
+        background-color: var(--gray-50);
     }
     
     .filter-options {

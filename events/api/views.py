@@ -13,10 +13,21 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
     lookup_field = "slug"
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ["parent"]
     search_fields = ["name", "description"]
     ordering_fields = ["name", "order"]
     ordering = ["order", "name"]
+    
+    def get_queryset(self):
+        queryset = Category.objects.filter(is_active=True)
+        
+        # Allow filtering for main categories only via ?main_only=true
+        main_only = self.request.query_params.get('main_only', None)
+        if main_only and main_only.lower() in ('true', '1', 'yes'):
+            queryset = queryset.filter(parent__isnull=True)
+        
+        return queryset.order_by('order', 'name')
 
 
 class EventViewSet(viewsets.ModelViewSet):

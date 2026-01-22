@@ -3,9 +3,18 @@ from events.models import Event, Category, NewsletterSubscriber
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    subcategories = serializers.SerializerMethodField()
+    
     class Meta:
         model = Category
-        fields = ["id", "name", "slug", "description", "parent", "order", "is_active"]
+        fields = ["id", "name", "slug", "description", "parent", "icon", "order", "is_active", "subcategories"]
+    
+    def get_subcategories(self, obj):
+        # Only include subcategories for main categories (those without a parent)
+        if obj.parent is None:
+            subcats = obj.subcategories.filter(is_active=True).order_by('order', 'name')
+            return [{"id": s.id, "name": s.name, "slug": s.slug, "icon": s.icon} for s in subcats]
+        return []
 
 
 class EventSerializer(serializers.ModelSerializer):

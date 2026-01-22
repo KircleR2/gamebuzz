@@ -57,8 +57,8 @@ class EventListView(TemplateView):
             end_date__gte=timezone.now().date()
         ).order_by('start_date')[:4]
         
-        # Get all categories
-        context['categories'] = Category.objects.filter(is_active=True).order_by('order', 'name')
+        # Get only main categories (no parent) for homepage
+        context['categories'] = Category.objects.filter(is_active=True, parent__isnull=True).order_by('order', 'name')
         
         # Get popular cities
         cities = (
@@ -126,16 +126,38 @@ class CategoryEventsView(ListView):
     
     def get_queryset(self):
         self.category = get_object_or_404(Category, slug=self.kwargs['slug'])
+        
+        # Get events from this category AND all its subcategories
+        category_ids = [self.category.id]
+        subcategories = Category.objects.filter(parent=self.category, is_active=True)
+        category_ids.extend(subcategories.values_list('id', flat=True))
+        
         return Event.objects.filter(
             status='published',
-            category=self.category,
+            category_id__in=category_ids,
             end_date__gte=timezone.now().date()
         ).order_by('start_date')
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['category'] = self.category
-        context['categories'] = Category.objects.filter(is_active=True).order_by('order', 'name')
+        
+        # Get subcategories of the current category
+        context['subcategories'] = Category.objects.filter(
+            parent=self.category, 
+            is_active=True
+        ).order_by('order', 'name')
+        
+        # For "Other Categories" section, show only main categories (excluding current if it's a main category)
+        context['categories'] = Category.objects.filter(
+            is_active=True, 
+            parent__isnull=True
+        ).order_by('order', 'name')
+        
+        # Check if current category is a subcategory (has a parent)
+        context['is_subcategory'] = self.category.parent is not None
+        context['parent_category'] = self.category.parent
+        
         return context
 
 class FeaturedEventsView(ListView):
@@ -152,7 +174,8 @@ class FeaturedEventsView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.filter(is_active=True).order_by('order', 'name')
+        # Only show main categories (no parent)
+        context['categories'] = Category.objects.filter(is_active=True, parent__isnull=True).order_by('order', 'name')
         return context
 
 class PopularEventsView(ListView):
@@ -168,7 +191,8 @@ class PopularEventsView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['categories'] = Category.objects.filter(is_active=True).order_by('order', 'name')
+        # Only show main categories (no parent)
+        context['categories'] = Category.objects.filter(is_active=True, parent__isnull=True).order_by('order', 'name')
         return context
 
 @method_decorator(csrf_exempt, name='dispatch')
