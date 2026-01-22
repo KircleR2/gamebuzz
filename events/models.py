@@ -21,8 +21,8 @@ class Category(models.Model):
         unique_together = ['name', 'parent']
 
     def __str__(self):
-        if self.parent:
-            return f"{self.parent} > {self.name}"
+        if self.parent_id:  # Use parent_id to avoid triggering a query/recursion
+            return f"{self.parent.name} > {self.name}"
         return self.name
 
     def save(self, *args, **kwargs):
@@ -32,9 +32,17 @@ class Category(models.Model):
 
     @property
     def full_name(self):
-        if self.parent:
-            return f"{self.parent.full_name} > {self.name}"
-        return self.name
+        """Build full category path, with protection against circular references"""
+        names = [self.name]
+        parent = self.parent
+        seen_ids = {self.id}
+        while parent:
+            if parent.id in seen_ids:  # Circular reference detected
+                break
+            seen_ids.add(parent.id)
+            names.insert(0, parent.name)
+            parent = parent.parent
+        return " > ".join(names)
 
 class Event(models.Model):
     STATUS_CHOICES = [
