@@ -99,20 +99,6 @@
                         {% endfor %}
                     </ul>
                 </div>
-                
-                <div class="footer-section">
-                    <h3>Ciudades Populares</h3>
-                    <ul class="footer-links">
-                        {% for city in popular_cities|slice:":4" %}
-                        <li><a href="#">{{ city.city }}, {{ city.state_province }}</a></li>
-                        {% empty %}
-                        <li><a href="#">Madrid, España</a></li>
-                        <li><a href="#">Barcelona, España</a></li>
-                        <li><a href="#">Ciudad de México, México</a></li>
-                        <li><a href="#">Buenos Aires, Argentina</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
             </div>
             
             <div class="footer-bottom">
